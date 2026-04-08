@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phasmophobia Geisterfilter</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="sidebarOverlay" class="sidebar-overlay" hidden></div>
+  <div class="app">
+    <aside id="sidebar" class="sidebar" aria-label="Filtermenü">
+      <div class="panel">
+        <h1>Phasmophobia Geisterfilter</h1>
+        <p class="muted">Links filtern, rechts direkte Treffer.</p>
+      </div>
+
+      <div class="panel panel-controls">
+        <div class="panel-heading">
+          <h2>Schnellfilter</h2>
+          <span class="panel-kicker">Start hier</span>
+        </div>
+
+        <label class="label" for="difficulty">Schwierigkeit</label>
+        <select id="difficulty">
+          <option value="anfaenger">Anfänger (3)</option>
+          <option value="fortgeschritten">Fortgeschritten (3)</option>
+          <option value="profi" selected>Profi (3)</option>
+          <option value="albtraum">Albtraum (2)</option>
+          <option value="wahnsinn">Wahnsinn (1)</option>
+          <option value="apokalypse3">Apokalypse III (0)</option>
+          <option value="benutzerdefiniert">Benutzerdefiniert (?)</option>
+        </select>
+
+        <button id="resetBtn">Zurücksetzen</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-heading">
+          <h2>Verhalten</h2>
+          <span class="panel-kicker">Feinfilter</span>
+        </div>
+
+        <div class="filter-section">
+          <h3 class="filter-title">Spezialverhalten</h3>
+          <div id="tagFilters" class="stack compact-stack"></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <button
+          id="menuToggle"
+          class="menu-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="sidebar"
+          aria-label="Filtermenü öffnen"
+        >
+          <span class="menu-toggle-icon" aria-hidden="true">☰</span>
+          <span class="menu-toggle-text">Menü</span>
+        </button>
+        <div id="resultCount" class="result-count">0 Treffer</div>
+      </div>
+
+      <div class="top-filters">
+        <div class="panel panel-evidence-top">
+          <div class="panel-heading">
+            <h2>Beweise</h2>
+            <span class="panel-kicker">Hauptfilter</span>
+          </div>
+          <div id="evidenceFilters" class="stack evidence-grid"></div>
+        </div>
+
+        <div class="panel panel-inline-filter">
+          <div class="panel-heading">
+            <h2>Geschwindigkeit</h2>
+            <span class="panel-kicker">Direktfilter</span>
+          </div>
+          <div id="speedFilters" class="stack compact-stack"></div>
+        </div>
+
+        <div class="panel panel-inline-filter">
+          <div class="panel-heading">
+            <h2>Jagdgrenze</h2>
+            <span class="panel-kicker">Direktfilter</span>
+          </div>
+          <div id="huntFilters" class="stack compact-stack"></div>
+        </div>
+      </div>
+
+      <div id="activeChips" class="chips"></div>
+      <div id="ghostGrid" class="ghost-grid"></div>
+
+      <div class="legend-panel">
+        <span class="legend-title">Bedeutung</span>
+        <span class="legend-item legend-frame-proof">Rahmen: 100%-Test</span>
+        <span class="legend-item legend-frame-safe">Rahmen: Fast sicher</span>
+        <span class="legend-item legend-frame-hunt">Rahmen: Jagdtest</span>
+        <span class="legend-item legend-meaning-hunt">Felder: Jagd / Gefahr</span>
+        <span class="legend-item legend-meaning-speed">Felder: Tempo / Distanz</span>
+        <span class="legend-item tag-sense">Lila: Audio / Kamera / Foto</span>
+        <span class="legend-item tag-tool">Gold: Strom / Licht / Salz / Flammen / Räucherwerk</span>
+        <span class="legend-item tag-trick">Violett: Täuscher / Imitation</span>
+        <span class="legend-item tag-danger">Rot: Anti-Hide / Druck</span>
+        <span class="legend-item tag-trait">Grau: Verhalten wie Zustände, Sichtlinie, Türen</span>
+      </div>
+    </main>
+  </div>
+
+  <script src="ghosts.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
+
+
+
