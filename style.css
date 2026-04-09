@@ -1,5 +1,7 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand:wght@400&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
+@import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+
 :root {
   --bg: #0d0c14;
   --bg-soft: #151724;
@@ -17,6 +19,7 @@
   --shadow: 0 14px 28px rgba(0, 0, 0, 0.26);
   --font-ui: 'IBM Plex Sans', sans-serif;
   --font-display: 'Patrick Hand', cursive;
+  --font-horror: 'Creepster', cursive;
 }
 
 * {
@@ -488,7 +491,7 @@ button {
 }
 
 .evidence-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
@@ -499,10 +502,30 @@ button {
   color: #f3ecff;
 }
 
-.evidence-label span {
+.evidence-label .evidence-text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.evidence-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}
+
+.evidence-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.evidence-icon-large {
+  width: 1.2em;
+  height: 1.2em;
 }
 
 .evidence-option[data-state="include"] .evidence-box {
@@ -610,7 +633,7 @@ button {
 
 .ghost-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
   gap: 14px;
   align-items: start;
 }
@@ -991,7 +1014,7 @@ button {
 
 .ghost-body {
   display: grid;
-  grid-template-columns: 182px minmax(0, 1fr);
+  grid-template-columns: 1fr;
   gap: 10px;
   align-items: stretch;
 }
@@ -1002,21 +1025,19 @@ button {
 }
 
 .ghost-facts {
-  display: grid;
-  gap: 8px;
-  padding: 8px;
-  border: 1px solid rgba(95, 87, 93, 0.38);
-  border-radius: 10px;
-  background:
-    linear-gradient(180deg, rgba(31, 28, 34, 0.82), rgba(20, 23, 31, 0.96)),
-    repeating-linear-gradient(180deg, rgba(255,255,255,0.01) 0 8px, transparent 8px 16px);
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .ghost-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 10px;
   align-items: center;
+  flex-direction: column;
   margin-bottom: 10px;
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(117, 109, 119, 0.24);
@@ -1032,15 +1053,18 @@ button {
 
 .ghost-name {
   margin: 0;
-  font-size: 1.58rem;
-  line-height: 1.05;
-  color: #f7f0df;
+  font-family: var(--font-horror);
+  font-size: 2.1rem;
+  line-height: 0.98;
+  color: #f8f0e4;
   flex: 1 1 auto;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.045em;
   text-transform: none;
   text-align: center;
   font-weight: 400;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.48),
+    0 0 10px rgba(145, 61, 54, 0.16);
 }
 
 .name-evidences {
@@ -1055,8 +1079,9 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  justify-content: flex-end;
-  max-width: 38%;
+  justify-content: center;
+  max-width: 100%;
+  width: 100%;
   flex: 0 0 auto;
 }
 
@@ -1155,6 +1180,7 @@ button {
 .evidence {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   padding: 4px 10px;
   background: rgba(45, 42, 59, 0.88);
   border: 1px solid rgba(95, 90, 114, 0.75);
@@ -1165,10 +1191,42 @@ button {
   color: #e5deef;
 }
 
+.evidence .evidence-text {
+  line-height: 1;
+}
+
 .evidence-fake {
   background: #3b3151;
   border-color: #7b67a0;
   color: #efe3ff;
+}
+
+.evidence-emf {
+  color: #ff736a;
+}
+
+.evidence-uv {
+  color: #be91ff;
+}
+
+.evidence-book {
+  color: #6db7ff;
+}
+
+.evidence-freezing {
+  color: #9fe8ff;
+}
+
+.evidence-dots {
+  color: #66f55f;
+}
+
+.evidence-orbs {
+  color: #efe48c;
+}
+
+.evidence-spiritbox {
+  color: #ffb06c;
 }
 
 .mini-note {
@@ -1188,7 +1246,7 @@ button {
 
 .stats {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 0;
 }
@@ -1241,16 +1299,14 @@ button {
 }
 
 .guide-panel {
-  border-radius: 10px;
-  border: 1px solid rgba(94, 87, 102, 0.42);
-  background:
-    linear-gradient(180deg, rgba(34, 31, 43, 0.98), rgba(21, 24, 33, 0.99)),
-    repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0 8px, transparent 8px 16px);
-  padding: 12px 14px;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
   display: grid;
   gap: 10px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
-  min-height: 100%;
+  box-shadow: none;
+  min-height: auto;
 }
 
 .guide-top {
@@ -1270,7 +1326,7 @@ button {
   padding: 10px;
   border: 1px solid rgba(90, 86, 104, 0.5);
   background: linear-gradient(180deg, rgba(39, 35, 49, 0.98), rgba(27, 25, 37, 0.98));
-  min-height: 126px;
+  min-height: 92px;
 }
 
 .guide-mini.rec-tool {
@@ -1338,12 +1394,12 @@ button {
 .guide-priority {
   display: grid;
   gap: 6px;
-  padding: 10px 0 2px;
+  padding: 0 0 2px;
 }
 
 .ghost-details {
   border-top: 1px dashed rgba(215, 206, 233, 0.16);
-  padding-top: 8px;
+  padding-top: 10px;
 }
 
 .ghost-details-summary {

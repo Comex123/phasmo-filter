@@ -1,5 +1,15 @@
 ﻿const EVIDENCES = ['EMF Level 5', 'Ultraviolett', 'Geisterbuch', 'Gefriertemperaturen', 'DOTS', 'Geisterorbs', 'Geisterbox'];
 
+const EVIDENCE_META = {
+  'EMF Level 5': { key: 'emf' },
+  'Ultraviolett': { key: 'uv' },
+  'Geisterbuch': { key: 'book' },
+  'Gefriertemperaturen': { key: 'freezing' },
+  'DOTS': { key: 'dots' },
+  'Geisterorbs': { key: 'orbs' },
+  'Geisterbox': { key: 'spiritbox' }
+};
+
 const SPEEDS = [
   { value: 'langsam', label: 'Langsam (0,4 bis 1,6 m/s)' },
   { value: 'normal', label: 'Normal (1,7 bis 1,8 m/s)' },
@@ -442,7 +452,7 @@ function renderEvidenceFilters() {
     return `
       <div class="evidence-option" data-evidence="${name}" data-state="${stateName}" data-disabled="${disabled ? 'true' : 'false'}">
         <div class="evidence-box" aria-hidden="true">${marker}</div>
-        <div class="evidence-label"><span>${name}</span></div>
+        ${renderEvidenceBadge(name, { large: true })}
       </div>
     `;
   }).join('');
@@ -450,6 +460,91 @@ function renderEvidenceFilters() {
 
 function visibleEvidences(ghost) {
   return [...new Set([...(ghost.evidences || []), ...((ghost.fakeVisibleEvidence || []).filter(e => EVIDENCES.includes(e)))])];
+}
+
+function evidenceClassName(name) {
+  const key = EVIDENCE_META[name]?.key || 'default';
+  return `evidence-${key}`;
+}
+
+function evidenceIconSvg(name) {
+  const key = EVIDENCE_META[name]?.key;
+
+  switch (key) {
+    case 'emf':
+      return `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+          <path d="M8 8v8"></path>
+          <path d="M12 10v6"></path>
+          <path d="M16 7v9"></path>
+        </svg>
+      `;
+    case 'uv':
+      return `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M12 5c3.5 0 6 2.8 6 6.2"></path>
+          <path d="M12 5c-3.5 0-6 2.8-6 6.2"></path>
+          <path d="M12 8c2 0 3.5 1.6 3.5 3.6"></path>
+          <path d="M12 8c-2 0-3.5 1.6-3.5 3.6"></path>
+          <path d="M9.4 14.2c0 2.8 1.2 4.9 2.6 6"></path>
+          <path d="M12 13.2c0 3.3.9 5.8 2.3 6.8"></path>
+          <path d="M14.8 12.3c0 2.8-.2 5.1-1 7"></path>
+        </svg>
+      `;
+    case 'book':
+      return `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 6.5h6a3 3 0 0 1 3 3v9H7a3 3 0 0 0-3 3z"></path>
+          <path d="M20 6.5h-6a3 3 0 0 0-3 3v9h6a3 3 0 0 1 3 3z"></path>
+        </svg>
+      `;
+    case 'freezing':
+      return `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v18"></path>
+          <path d="M4.8 7.2l14.4 9.6"></path>
+          <path d="M19.2 7.2L4.8 16.8"></path>
+          <path d="M12 3l2 2"></path>
+          <path d="M12 3l-2 2"></path>
+          <path d="M12 21l2-2"></path>
+          <path d="M12 21l-2-2"></path>
+        </svg>
+      `;
+    case 'dots':
+      return `
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="6" cy="6" r="2.1"></circle>
+          <circle cx="12" cy="6" r="2.1"></circle>
+          <circle cx="18" cy="6" r="2.1"></circle>
+          <circle cx="9" cy="12" r="2.1"></circle>
+          <circle cx="15" cy="12" r="2.1"></circle>
+          <circle cx="6" cy="18" r="2.1"></circle>
+          <circle cx="12" cy="18" r="2.1"></circle>
+          <circle cx="18" cy="18" r="2.1"></circle>
+        </svg>
+      `;
+    case 'orbs':
+      return `
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="7" cy="7" r="2.5"></circle>
+          <circle cx="15" cy="5" r="1.9"></circle>
+          <circle cx="17" cy="13" r="2.8"></circle>
+          <circle cx="8" cy="17" r="2.2"></circle>
+        </svg>
+      `;
+    case 'spiritbox':
+      return `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 4c-4.4 0-8 3.2-8 7.3 0 2.5 1.3 4.3 3.1 5.7V20l2.2-1.7 2.7 1.7 2.7-1.7L17 20v-3c1.8-1.4 3-3.2 3-5.7C20 7.2 16.4 4 12 4z"></path>
+          <circle cx="9.3" cy="11" r="0.9" fill="currentColor" stroke="none"></circle>
+          <circle cx="14.7" cy="11" r="0.9" fill="currentColor" stroke="none"></circle>
+          <path d="M9 14c1 .8 2 .9 3 .9s2-.1 3-.9"></path>
+        </svg>
+      `;
+    default:
+      return '';
+  }
 }
 
 function blinkInfo(name) {
@@ -555,10 +650,10 @@ function nextActionText(ghost) {
 }
 
 function visibleEvidencePills(ghost) {
-  const real = (ghost.evidences || []).map(e => `<span class="evidence">${e}</span>`);
+  const real = (ghost.evidences || []).map(e => renderEvidenceBadge(e));
   const fake = (ghost.fakeVisibleEvidence || [])
     .filter(e => EVIDENCES.includes(e))
-    .map(e => `<span class="evidence evidence-fake">${e}*</span>`);
+    .map(e => renderEvidenceBadge(e, { fake: true }));
 
   return `<div class="evidence-list">${[...real, ...fake].join('')}</div>`;
 }
@@ -574,6 +669,15 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function renderEvidenceBadge(name, { fake = false, large = false } = {}) {
+  return `
+    <span class="${large ? 'evidence-label' : 'evidence'} ${evidenceClassName(name)}">
+      <span class="evidence-icon${large ? ' evidence-icon-large' : ''}" aria-hidden="true">${evidenceIconSvg(name)}</span>
+      <span class="evidence-text">${escapeHtml(name)}${fake ? '*' : ''}</span>
+    </span>
+  `;
 }
 
 function shortText(value, maxLength = 88) {
