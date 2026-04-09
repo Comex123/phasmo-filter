@@ -1,16 +1,16 @@
 ﻿const EVIDENCES = ['EMF Level 5', 'Ultraviolett', 'Geisterbuch', 'Gefriertemperaturen', 'DOTS', 'Geisterorbs', 'Geisterbox'];
 
 const SPEEDS = [
-  { value: 'langsam', label: 'Langsam' },
-  { value: 'normal', label: 'Normal' },
-  { value: 'schnell', label: 'Schnell' },
+  { value: 'langsam', label: 'Langsam (0,4 bis 1,6 m/s)' },
+  { value: 'normal', label: 'Normal (1,7 bis 1,8 m/s)' },
+  { value: 'schnell', label: 'Schnell (1,9 bis 3,0 m/s)' },
 ];
 
 const HUNT_LEVELS = [
-  { value: 'spaet', label: 'Spät (<40%)' },
-  { value: 'normal', label: 'Normal (~50%)' },
-  { value: 'frueh', label: 'Früh (>50%)' },
-  { value: 'sehr-frueh', label: 'Sehr früh (>75%)' },
+  { value: 'spaet', label: 'Spät (0 bis 39%)' },
+  { value: 'normal', label: 'Normal (40 bis 50%)' },
+  { value: 'frueh', label: 'Früh (51 bis 74%)' },
+  { value: 'sehr-frueh', label: 'Sehr früh (75 bis 100%)' },
 ];
 
 const TAGS = [
@@ -108,14 +108,207 @@ const HUNT_PROFILE = {
   'Yurei': ['normal']
 };
 
+const GHOST_ORDER = [
+  'Banshee',
+  'Dayan',
+  'Dämon',
+  'Deogen',
+  'Gallu',
+  'Goryo',
+  'Hantu',
+  'Dschinn',
+  'Mare',
+  'Moroi',
+  'Myling',
+  'Obake',
+  'Obambo',
+  'Oni',
+  'Onryo',
+  'Phantom',
+  'Poltergeist',
+  'Raiju',
+  'Revenant',
+  'Shade',
+  'Spirit',
+  'Thaye',
+  'Der Mimik',
+  'Die Zwillinge',
+  'Gespenst',
+  'Yokai',
+  'Yurei'
+];
+
+const GHOST_ORDER_INDEX = Object.fromEntries(GHOST_ORDER.map((name, index) => [name, index]));
+
 const evidenceState = Object.fromEntries(EVIDENCES.map(e => [e, 0]));
 const dimmedGhosts = new Set();
+let currentView = 'ghosts';
+let lastFilteredCount = 0;
+const TAROT_CARDS = [
+  { name: 'The Sun', effect: 'Gibt 100% Sanity zurück', chance: '5%' },
+  { name: 'The Moon', effect: 'Raubt 100% Sanity', chance: '5%' },
+  { name: 'The Tower', effect: 'Verdoppelt Interaktionsrate', chance: '~17%' },
+  { name: 'The Devil', effect: 'Löst Geister-Event aus', chance: '5%' },
+  { name: 'The High Priestess', effect: 'Belebt zufälligen Spieler wieder', chance: '2%' },
+  { name: 'The Hanged Man', effect: 'Tötet den Spieler', chance: '1%' },
+  { name: 'Death', effect: 'Löst Hunt aus', chance: '~17%' },
+  { name: 'The Hermit', effect: 'Teleport in Geisterraum, 1 Min gefangen', chance: '10%' },
+  { name: 'The Wheel of Fortune', effect: 'Rot zieht 25% Sanity ab', chance: '~17%' },
+  { name: 'The Wheel of Fortune', effect: 'Grün gibt 25% Sanity wieder', chance: '~17%' },
+  { name: 'The Fool', effect: 'Vorherige Karte ist ungültig', chance: '~17%' }
+];
+
+const SUMMONING_CIRCLE_STEPS = [
+  { label: 'Pro Kerze', value: '16% Sanity' },
+  { label: '5 Kerzen', value: '80% Sanity gesamt' },
+  { label: 'Erscheinung', value: 'Geist spawnt im Kreis' },
+  { label: 'Regungslos', value: '5 Sekunden Event' },
+  { label: 'Danach', value: '1 Sekunde Schonzeit' },
+  { label: 'Folge', value: 'Verfluchte Jagd' }
+];
+
+const MIRROR_STEPS = [
+  { label: 'Nutzung', value: 'Zeigt den Geisterraum' },
+  { label: 'Sanity direkt', value: '20% pro Nutzung' },
+  { label: 'Sanity aktiv', value: '7,5% pro Sekunde' },
+  { label: 'Sicher', value: 'Nur auf der Map benutzen' },
+  { label: 'Zerbricht bei', value: '0% während Nutzung' },
+  { label: 'Auch kritisch', value: 'Unter 20% beim Aktivieren' }
+];
+
+const VOODOO_STEPS = [
+  { label: 'Sanity pro Nadel', value: '5%' },
+  { label: 'Herznadel', value: '10% Sanity' },
+  { label: 'Versuche', value: '10 Nadeln / 10 Nutzungen' },
+  { label: 'Erzwingt', value: 'Interaktionen des Geists' },
+  { label: 'Kann triggern', value: 'EMF 5 und UV' },
+  { label: 'Kein Trigger', value: 'Nicht Geisterbuch oder DOTS' }
+];
+
+const OUIJA_SECTIONS = [
+  {
+    category: 'Aufenthaltsort',
+    question: 'Wo bist du? / Wo ist dein Lieblingsraum?',
+    answer: 'Geisterraum',
+    sanity: '50%'
+  },
+  {
+    category: 'Knochen',
+    question: 'Wo ist der Knochen?',
+    answer: 'Raum',
+    sanity: '20%'
+  },
+  {
+    category: 'Versteck',
+    question: 'Hide and Seek? / Verstecken?',
+    answer: 'Zählt von 5 auf 0',
+    sanity: '0%'
+  },
+  {
+    category: 'Anzahl',
+    question: 'Wie viele Spieler / Geister sind hier?',
+    answer: 'Zahl',
+    sanity: '20%'
+  },
+  {
+    category: 'Schüchtern',
+    question: 'Redest du mit jedem?',
+    answer: 'Ja / Nein',
+    sanity: '20%'
+  },
+  {
+    category: 'Alter',
+    question: 'Wie alt bist du?',
+    answer: '10 bis 90',
+    sanity: '5%'
+  },
+  {
+    category: 'Tod',
+    question: 'Wann bist du gestorben?',
+    answer: '50 bis 1000',
+    sanity: '5%'
+  },
+  {
+    category: 'Sanity',
+    question: 'Wie ist meine Sanity? / Bin ich verrückt?',
+    answer: 'Healthy bis Awful / No bis Yes',
+    sanity: '5%'
+  }
+];
+
+const MUSIC_BOX_STEPS = [
+  { label: '20 m Range', value: 'Geist singt unsichtbar' },
+  { label: '5 m Range', value: 'Event und Geist läuft zur Box' },
+  { label: 'Nutzung', value: 'Am besten erst hinstellen, dann Foto' },
+  { label: 'Sanity', value: 'Bis zu 75% bei voller Spielzeit' },
+  { label: 'Einmalig', value: 'Nur einmal pro Runde nutzbar' },
+  { label: 'Kein Beweis', value: 'Nicht sicher für Geisterraum' }
+];
+
+const MONKEY_PAW_WISHES = [
+  {
+    category: 'Spieler',
+    wish: 'Ich wünsche mir geistige Gesundheit',
+    effect: 'Sanity aller Spieler auf 50%',
+    consequence: 'Sanityverlust x1,5; Geisterraum wird zufällig'
+  },
+  {
+    category: 'Spieler',
+    wish: 'Ich wünsche mir Sicherheit',
+    effect: 'Nächstes Versteck öffnet',
+    consequence: 'Licht im Raum zerstört; Geist hört Spieler und Elektronik überall'
+  },
+  {
+    category: 'Spieler',
+    wish: 'Ich wünsche mir diesen Ort zu verlassen',
+    effect: 'Öffnet während der Jagd alle Eingänge',
+    consequence: 'Sicht reduziert; 5 Sekunden verlangsamt'
+  },
+  {
+    category: 'Geist',
+    wish: 'Ich wünsche mir, den Geist zu sehen',
+    effect: 'Geisterevent am Aufenthaltsort',
+    consequence: 'Nach 5 Sekunden verfluchte Jagd; Sicht verschleiert'
+  },
+  {
+    category: 'Geist',
+    wish: 'Ich wünsche mir Aktivität',
+    effect: 'Interaktionsrate 2 Minuten verdoppelt',
+    consequence: 'Breaker dauerhaft zerstört; Eingangstür 2 Minuten verriegelt'
+  },
+  {
+    category: 'Geist',
+    wish: 'Ich wünsche mir, dass der Geist gefangen ist',
+    effect: 'Geist 1 Minute im Geisterraum eingeschlossen',
+    consequence: 'Spieler im Raum eingeschlossen; danach Jagd'
+  },
+  {
+    category: 'Anderes',
+    wish: 'Ich wünsche mir meinen Freund wiederzubeleben',
+    effect: 'Belebt einen Spieler wieder',
+    consequence: '50% Chance, selbst zu sterben'
+  },
+  {
+    category: 'Anderes',
+    wish: 'Ich wünsche mir Wissen',
+    effect: 'Ein falscher Beweis wird entfernt',
+    consequence: 'Verfluchte Jagd nahe dem Spieler; Sicht und Sound eingeschränkt'
+  },
+  {
+    category: 'Anderes',
+    wish: 'Ich wünsche mir anderes Wetter',
+    effect: 'Wetter ändert sich',
+    consequence: '25% Sanity'
+  }
+];
 
 const els = {
   body: document.body,
   sidebar: document.getElementById('sidebar'),
   sidebarOverlay: document.getElementById('sidebarOverlay'),
   menuToggle: document.getElementById('menuToggle'),
+  jumpGhosts: document.getElementById('jumpGhosts'),
+  jumpCursed: document.getElementById('jumpCursed'),
   difficulty: document.getElementById('difficulty'),
   searchInput: document.getElementById('searchInput'),
   strictMode: document.getElementById('strictMode'),
@@ -126,7 +319,10 @@ const els = {
   resetBtn: document.getElementById('resetBtn'),
   resultCount: document.getElementById('resultCount'),
   activeChips: document.getElementById('activeChips'),
-  ghostGrid: document.getElementById('ghostGrid')
+  ghostGrid: document.getElementById('ghostGrid'),
+  ghostView: document.getElementById('ghostView'),
+  cursedView: document.getElementById('cursedView'),
+  cursedGrid: document.getElementById('cursedGrid')
 };
 
 function setSidebarOpen(isOpen) {
@@ -144,6 +340,54 @@ function setSidebarOpen(isOpen) {
 
 function toggleSidebar() {
   setSidebarOpen(!els.body.classList.contains('sidebar-open'));
+}
+
+function setView(view) {
+  currentView = view;
+
+  const showGhosts = view === 'ghosts';
+
+  if (els.ghostView) {
+    els.ghostView.hidden = !showGhosts;
+  }
+
+  if (els.cursedView) {
+    els.cursedView.hidden = showGhosts;
+  }
+
+  els.body.classList.toggle('view-cursed', !showGhosts);
+
+  if (els.jumpGhosts) {
+    els.jumpGhosts.classList.toggle('is-active', showGhosts);
+  }
+
+  if (els.jumpCursed) {
+    els.jumpCursed.classList.toggle('is-active', !showGhosts);
+  }
+
+  updateResultCount(lastFilteredCount);
+}
+
+function showGhostOverview() {
+  setView('ghosts');
+}
+
+function showCursedCards() {
+  setView('cursed');
+}
+
+function updateResultCount(filteredCount = null) {
+  if (!els.resultCount) return;
+
+  if (currentView === 'cursed') {
+    const cursedCount = els.cursedGrid?.children.length || 0;
+    els.resultCount.textContent = `${cursedCount} Verfluchte Karten`;
+    return;
+  }
+
+  if (typeof filteredCount === 'number') {
+    els.resultCount.textContent = `${filteredCount} Treffer`;
+  }
 }
 
 function getSearchValue() {
@@ -232,6 +476,82 @@ function cardTypeClass(tags) {
   if (tags.includes('Fast sicher')) return 'type-fast';
   if (tags.includes('Jagdtest')) return 'type-hunt';
   return '';
+}
+
+function primaryMethodLabel(tags) {
+  if (tags.includes('100%-Test')) return '100%-Test';
+  if (tags.includes('Fast sicher')) return 'Fast sicher';
+  if (tags.includes('Jagdtest')) return 'Hunt-Test';
+  return 'Verhalten';
+}
+
+function certaintyText(tags) {
+  if (tags.includes('100%-Test')) return 'Ein klarer Test kann den Geist sehr direkt bestätigen.';
+  if (tags.includes('Fast sicher')) return 'Starker Hinweis, aber am besten noch einmal gegenprüfen.';
+  if (tags.includes('Jagdtest')) return 'Mehrere vergleichbare Hunts geben hier die beste Sicherheit.';
+  return 'Nur zusammen mit weiterem Verhalten sicher auswerten.';
+}
+
+function primaryToolText(tags) {
+  if (tags.includes('Audio')) return 'Parabolmikro, Sound Recorder oder Geisterbox';
+  if (tags.includes('Kamera')) return 'Videokamera und Abstand';
+  if (tags.includes('Foto')) return 'Foto oder Video';
+  if (tags.includes('Salz')) return 'Salz und EMF-Kontrolle';
+  if (tags.includes('Licht')) return 'Lichtschalter und Raumhelligkeit';
+  if (tags.includes('Strom')) return 'Sicherungskasten, Strom und Elektronik';
+  if (tags.includes('Flammen')) return 'Kerzen, Flammen und Timer';
+  if (tags.includes('Räucherwerk')) return 'Räucherwerk und genauer Timer';
+  if (tags.includes('Bewegung')) return 'Bewegung im Raum direkt vergleichen';
+  if (tags.includes('Zustände')) return 'Mehrere Hunts und Zustandswechsel';
+  if (tags.includes('Events')) return 'Geister-Events und Manifestation';
+  if (tags.includes('Sichtlinie')) return 'Sichtkontakt und Sichtbruch';
+  if (tags.includes('Passiv')) return 'Raumpräsenz und Aktivitätsvergleich';
+  if (tags.includes('Alterung')) return 'Zeitverlauf und frühe/späte Runde';
+  if (tags.includes('Doppelaktion')) return 'Interaktionen auf Distanz und Hunt-Speeds';
+  if (tags.includes('Türen')) return 'Türen, Haustür und Smudge';
+  if (tags.includes('Objekte')) return 'Wurfobjekte und EMF';
+  if (tags.includes('Täuscher')) return 'Mehrere Hinweise gleichzeitig';
+  if (tags.includes('Anti-Hide')) return 'Direktes Verhalten im Hunt';
+  return 'Verhalten sauber beobachten';
+}
+
+function toolUsageText(tags) {
+  if (tags.includes('Audio')) return 'Damit hörst du den speziellen Hinweis am zuverlässigsten.';
+  if (tags.includes('Kamera')) return 'Ohne Kamera wirkt der Test oft uneindeutig oder falsch.';
+  if (tags.includes('Foto')) return 'Ein Foto oder Video kann hier direkt bestätigen oder widerlegen.';
+  if (tags.includes('Salz')) return 'Nur sauber platzierte Tests geben dir ein klares Ergebnis.';
+  if (tags.includes('Licht')) return 'Raumlicht und Schalterzustand müssen dabei bewusst kontrolliert werden.';
+  if (tags.includes('Strom')) return 'Der Unterschied zeigt sich nur mit passender Stromlage oder Elektronik.';
+  if (tags.includes('Flammen')) return 'Kerzen und Timer müssen dabei exakt mitgezählt werden.';
+  if (tags.includes('Räucherwerk')) return 'Ohne Timer ist der Test deutlich weniger wert.';
+  if (tags.includes('Täuscher')) return 'Ein einzelner Hinweis reicht hier fast nie als Bestätigung.';
+  return 'Dieses Werkzeug macht den Test im Match deutlich klarer.';
+}
+
+function nextActionText(ghost) {
+  const tags = ghost.tags || [];
+
+  if (tags.includes('Audio')) return 'Audio-Tools nutzen und auf den speziellen Sound achten.';
+  if (tags.includes('Kamera')) return 'Mit Videokamera und Abstand testen.';
+  if (tags.includes('Foto')) return 'Foto oder Video gezielt zum Bestätigen einsetzen.';
+  if (tags.includes('Salz')) return 'Salz legen und genau auf die Reaktion achten.';
+  if (tags.includes('Licht')) return 'Licht im Geisterraum bewusst an- und ausmachen.';
+  if (tags.includes('Strom')) return 'Stromlage und aktiven Geräteeinfluss gezielt vergleichen.';
+  if (tags.includes('Flammen')) return 'Kerzen mitzählen und die Reaktion sauber timen.';
+  if (tags.includes('Räucherwerk')) return 'Räucherwerk einsetzen und den Timer genau stoppen.';
+  if (tags.includes('Bewegung')) return 'Mit und ohne Bewegung direkt gegeneinander testen.';
+  if (tags.includes('Zustände')) return 'Nicht nur einen Hunt werten, sondern Zustandswechsel vergleichen.';
+  if (tags.includes('Events')) return 'Vor allem Event-Art und Manifestation beobachten.';
+  if (tags.includes('Sichtlinie')) return 'Sichtkontakt bewusst herstellen und wieder brechen.';
+  if (tags.includes('Passiv')) return 'Im Raum bleiben und Aktivität unter Anwesenheit vergleichen.';
+  if (tags.includes('Alterung')) return 'Frühe Runde und spätere Runde getrennt bewerten.';
+  if (tags.includes('Doppelaktion')) return 'Weit getrennte Interaktionen und zwei Hunt-Speeds prüfen.';
+  if (tags.includes('Türen')) return 'Türen und besonders klare Tür-Slams beobachten.';
+  if (tags.includes('Objekte')) return 'Genug Wurfobjekte liegen lassen und Mehrfachwürfe suchen.';
+  if (tags.includes('Täuscher')) return 'Nie nur einen Test werten, immer mehrere Hinweise kombinieren.';
+  if (tags.includes('Anti-Hide')) return 'Nicht verstecken, sondern das Verhalten direkt am Geist prüfen.';
+
+  return 'Den Haupttest sauber durchführen und erst dann weiter eingrenzen.';
 }
 
 function visibleEvidencePills(ghost) {
@@ -415,14 +735,249 @@ function renderChips() {
   els.activeChips.innerHTML = chips.map(v => `<span class="chip">${v}</span>`).join('');
 }
 
+function renderTarotCard() {
+  const tarotRows = TAROT_CARDS.map(card => `
+    <div class="tarot-row">
+      <span class="tarot-name">${card.name}</span>
+      <span class="tarot-effect">${card.effect}</span>
+      <span class="tarot-chance">${card.chance}</span>
+    </div>
+  `).join('');
+
+  return `
+    <article class="tarot-card">
+      <div class="tarot-header">
+        <div>
+          <h2 class="tarot-title">Tarot Cards</h2>
+          <p class="tarot-copy">Es gibt immer einen Stapel aus <span class="clue-highlight">10 Karten</span>, von denen <span class="clue-highlight">9 aktiv</span> gezogen werden können.</p>
+        </div>
+        <span class="tag tag-danger">Verflucht</span>
+      </div>
+      <div class="tarot-table">
+        ${tarotRows}
+      </div>
+      <div class="tarot-notes">
+        <p class="tarot-note"><span class="note-label">Wichtig</span> <span class="clue-highlight">The High Priestess</span> belebt nur, wenn ein Spieler tot ist. Sonst belebt sie den nächsten Sterbenden sofort wieder.</p>
+        <p class="tarot-note"><span class="note-label">Wichtig</span> <span class="clue-highlight">The Fool</span> kommt während einer Jagd sicher als <span class="clue-highlight">Death</span>, damit der Effekt nicht abgebrochen werden kann.</p>
+      </div>
+    </article>
+  `;
+}
+
+function renderSummoningCard() {
+  const stepRows = SUMMONING_CIRCLE_STEPS.map(step => `
+    <div class="tarot-row">
+      <span class="tarot-name">${step.label}</span>
+      <span class="tarot-effect">${step.value}</span>
+      <span class="tarot-chance"></span>
+    </div>
+  `).join('');
+
+  return `
+    <article class="tarot-card summoning-card">
+      <div class="tarot-header">
+        <div>
+          <h2 class="tarot-title">Beschwörungskreis</h2>
+          <p class="tarot-copy">Ein blutgemalter Kreis mit <span class="clue-highlight">5 Kerzen</span>. Wenn alle Kerzen brennen, erscheint der Geist im Kreis, bleibt kurz stehen und startet danach eine <span class="clue-highlight">verfluchte Jagd</span>.</p>
+        </div>
+        <span class="tag tag-danger">Verflucht</span>
+      </div>
+      <div class="tarot-table">
+        ${stepRows}
+      </div>
+      <div class="tarot-notes">
+        <p class="tarot-note"><span class="note-label">Ablauf</span> Wird der Kreis <span class="clue-highlight">während einer Jagd</span> benutzt, teleportiert sich der Geist in die Mitte und jagt direkt weiter.</p>
+        <p class="tarot-note"><span class="note-label">Vorsicht</span> Hast du bei der letzten Kerze nur noch <span class="clue-highlight">16% Sanity oder weniger</span>, startet praktisch sofort die <span class="clue-highlight">verfluchte Jagd</span>.</p>
+        <p class="tarot-note"><span class="note-label">Limit</span> Der Kreis kann pro Runde nur <span class="clue-highlight">einmal</span> benutzt werden.</p>
+      </div>
+    </article>
+  `;
+}
+
+function renderMirrorCard() {
+  const stepRows = MIRROR_STEPS.map(step => `
+    <div class="tarot-row">
+      <span class="tarot-name">${step.label}</span>
+      <span class="tarot-effect">${step.value}</span>
+      <span class="tarot-chance"></span>
+    </div>
+  `).join('');
+
+  return `
+    <article class="tarot-card mirror-card">
+      <div class="tarot-header">
+        <div>
+          <h2 class="tarot-title">Verfluchter Spiegel</h2>
+          <p class="tarot-copy">Der Spiegel zeigt den <span class="clue-highlight">Geisterraum</span>. Bricht er wegen zu niedriger Sanity, startet sofort eine <span class="clue-highlight">verfluchte Jagd</span>.</p>
+        </div>
+        <span class="tag tag-sense">Verflucht</span>
+      </div>
+      <div class="tarot-table">
+        ${stepRows}
+      </div>
+      <div class="tarot-notes">
+        <p class="tarot-note"><span class="note-label">Wichtig</span> Der Verbrauch ist entweder <span class="clue-highlight">20%</span> pro Nutzung oder <span class="clue-highlight">7,5% pro Sekunde</span>, je nachdem was höher ist.</p>
+        <p class="tarot-note"><span class="note-label">Praxis</span> Unter etwa <span class="clue-highlight">2,5 Sekunden</span> Blickzeit zählen meist nur die festen <span class="clue-highlight">20%</span>.</p>
+        <p class="tarot-note"><span class="note-label">Vorsicht</span> Der Spiegel kann nicht mit weniger als <span class="clue-highlight">20% Sanity</span> sicher benutzt werden.</p>
+      </div>
+    </article>
+  `;
+}
+
+function renderVoodooCard() {
+  const stepRows = VOODOO_STEPS.map(step => `
+    <div class="tarot-row">
+      <span class="tarot-name">${step.label}</span>
+      <span class="tarot-effect">${step.value}</span>
+      <span class="tarot-chance"></span>
+    </div>
+  `).join('');
+
+  return `
+    <article class="tarot-card voodoo-card">
+      <div class="tarot-header">
+        <div>
+          <h2 class="tarot-title">Voodoo Puppe</h2>
+          <p class="tarot-copy">Die Puppe hat <span class="clue-highlight">10 Nadeln</span>. Normale Nadeln erzwingen Interaktionen, die <span class="clue-highlight">Herznadel</span> startet eine <span class="clue-highlight">verfluchte Jagd</span>.</p>
+        </div>
+        <span class="tag tag-danger">Verflucht</span>
+      </div>
+      <div class="tarot-table">
+        ${stepRows}
+      </div>
+      <div class="tarot-notes">
+        <p class="tarot-note"><span class="note-label">Wichtig</span> Mit der Puppe kannst du Interaktionen wie <span class="clue-highlight">Tür</span>, <span class="clue-highlight">Tasse</span> oder andere Objekte erzwingen.</p>
+        <p class="tarot-note"><span class="note-label">Beweise</span> Sie kann <span class="clue-highlight">EMF 5</span> und <span class="clue-highlight">UV</span> auslösen, aber nicht direkt <span class="clue-highlight">Geisterbuch</span> oder <span class="clue-highlight">DOTS</span>.</p>
+        <p class="tarot-note"><span class="note-label">Vorsicht</span> Bei <span class="clue-highlight">0% Sanity</span> werden alle übrigen Nadeln sofort eingedrückt und es startet ebenfalls eine <span class="clue-highlight">verfluchte Jagd</span>.</p>
+      </div>
+    </article>
+  `;
+}
+
+function renderOuijaCard() {
+  const rows = OUIJA_SECTIONS.map(section => `
+    <div class="tarot-row ouija-row">
+      <span class="tarot-name">${section.category}</span>
+      <span class="tarot-effect">
+        <strong class="ouija-question">${section.question}</strong>
+        <span class="ouija-answer">${section.answer}</span>
+      </span>
+      <span class="tarot-chance">${section.sanity}</span>
+    </div>
+  `).join('');
+
+  return `
+    <article class="tarot-card ouija-card">
+      <div class="tarot-header">
+        <div>
+          <h2 class="tarot-title">Ouija Brett</h2>
+          <p class="tarot-copy">Das Brett beantwortet Fragen, bis es mit <span class="clue-highlight">„Bye“</span> geschlossen wird. Wenn die Antwort den Spieler auf <span class="clue-highlight">0% Sanity</span> bringt oder man weiter als <span class="clue-highlight">5 Meter</span> entfernt ist, zerbricht es und löst eine <span class="clue-highlight">verfluchte Jagd</span> aus.</p>
+        </div>
+        <span class="tag tag-trait">Verflucht</span>
+      </div>
+      <div class="tarot-table">
+        ${rows}
+      </div>
+      <div class="tarot-notes">
+        <p class="tarot-note"><span class="note-label">Wichtig</span> Nach jeder Frage immer mit <span class="clue-highlight">Bye</span> schließen, damit keine unnötige Sanity verloren geht.</p>
+        <p class="tarot-note"><span class="note-label">Vorsicht</span> <span class="clue-highlight">Hide and Seek</span> kostet <span class="clue-highlight">0%</span>, startet aber die Suche und kann schnell gefährlich werden.</p>
+        <p class="tarot-note"><span class="note-label">Praxis</span> Für schnelle Infos sind <span class="clue-highlight">Knochen</span>, <span class="clue-highlight">Alter</span> und <span class="clue-highlight">Sanity</span> oft die besten Standardfragen.</p>
+      </div>
+    </article>
+  `;
+}
+
+function renderMusicBoxCard() {
+  const rows = MUSIC_BOX_STEPS.map(step => `
+    <div class="tarot-row">
+      <span class="tarot-name">${step.label}</span>
+      <span class="tarot-effect">${step.value}</span>
+      <span class="tarot-chance"></span>
+    </div>
+  `).join('');
+
+  return `
+    <article class="tarot-card musicbox-card">
+      <div class="tarot-header">
+        <div>
+          <h2 class="tarot-title">Musikbox</h2>
+          <p class="tarot-copy">Spielt eine verfluchte Melodie. Innerhalb von <span class="clue-highlight">20 Metern</span> singt der Geist, innerhalb von <span class="clue-highlight">5 Metern</span> startet ein sichtbares Event und der Geist läuft zur Box.</p>
+        </div>
+        <span class="tag tag-sense">Verflucht</span>
+      </div>
+      <div class="tarot-table">
+        ${rows}
+      </div>
+      <div class="tarot-notes">
+        <p class="tarot-note"><span class="note-label">Verfluchte Jagd</span> Startet, wenn der Geist <span class="clue-highlight">nah am Spieler</span> ist, wenn die Box <span class="clue-highlight">geworfen</span> wird oder wenn du auf <span class="clue-highlight">0% Sanity</span> fällst.</p>
+        <p class="tarot-note"><span class="note-label">Praxis</span> Die Musikbox ist kein sicherer Beweis für den Geisterraum, weil der Geist währenddessen auch <span class="clue-highlight">wandern</span> kann.</p>
+        <p class="tarot-note"><span class="note-label">Foto</span> Am besten die Box erst auf den <span class="clue-highlight">Boden</span> stellen, damit du während des Events sauber fotografieren kannst.</p>
+      </div>
+    </article>
+  `;
+}
+
+function renderMonkeyPawCard() {
+  const rows = MONKEY_PAW_WISHES.map(entry => `
+    <div class="tarot-row monkey-row">
+      <span class="tarot-name monkey-wish">
+        <span class="wish-category">${entry.category}</span>
+        <span class="wish-text">${escapeHtml(entry.wish)}</span>
+      </span>
+      <span class="tarot-effect">${highlightClues(entry.effect)}</span>
+      <span class="tarot-chance monkey-consequence">${highlightClues(entry.consequence)}</span>
+    </div>
+  `).join('');
+
+  return `
+    <article class="tarot-card monkeypaw-card">
+      <div class="tarot-header">
+        <div>
+          <h2 class="tarot-title">Affenpfote</h2>
+          <p class="tarot-copy">Die Pfote erfüllt <span class="clue-highlight">5 Wünsche</span> pro Runde. Je nach Wunsch bekommst du einen starken Vorteil, aber fast immer mit einem harten Haken oder einer direkten <span class="clue-highlight">verfluchten Jagd</span>.</p>
+        </div>
+        <span class="tag tag-danger">Verflucht</span>
+      </div>
+      <div class="tarot-table">
+        ${rows}
+      </div>
+      <div class="tarot-notes">
+        <p class="tarot-note"><span class="note-label">Wichtig</span> Es gibt Wünsche aus den Gruppen <span class="clue-highlight">Geist</span>, <span class="clue-highlight">Spieler</span> und <span class="clue-highlight">Anderes</span>. In <span class="clue-highlight">Sunny Meadows</span> findest du die größte Wunsch-Auswahl.</p>
+        <p class="tarot-note"><span class="note-label">Praxis</span> Besonders stark sind <span class="clue-highlight">Sicherheit</span>, <span class="clue-highlight">Aktivität</span> und <span class="clue-highlight">Wissen</span>, aber sie haben alle klare Nebenwirkungen, die du im Match mit einplanen musst.</p>
+        <p class="tarot-note"><span class="note-label">Vorsicht</span> Wünsche wie <span class="clue-highlight">den Geist zu sehen</span>, <span class="clue-highlight">gefangen</span> oder <span class="clue-highlight">Wissen</span> können sehr schnell in eine <span class="clue-highlight">verfluchte Jagd</span> kippen, wenn du nicht vorbereitet bist.</p>
+      </div>
+    </article>
+  `;
+}
+
+function renderCursedCards() {
+  return `${renderTarotCard()}${renderSummoningCard()}${renderMirrorCard()}${renderVoodooCard()}${renderOuijaCard()}${renderMusicBoxCard()}${renderMonkeyPawCard()}`;
+}
+
 function render() {
   renderEvidenceFilters();
+  if (els.cursedGrid) {
+    els.cursedGrid.innerHTML = renderCursedCards();
+  }
 
   const filtered = ghosts
     .filter(matchesGhost)
-    .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+    .sort((a, b) => {
+      const aIndex = GHOST_ORDER_INDEX[a.name];
+      const bIndex = GHOST_ORDER_INDEX[b.name];
 
-  els.resultCount.textContent = `${filtered.length} Treffer`;
+      if (aIndex !== undefined && bIndex !== undefined) {
+        return aIndex - bIndex;
+      }
+
+      if (aIndex !== undefined) return -1;
+      if (bIndex !== undefined) return 1;
+
+      return a.name.localeCompare(b.name, 'de');
+    });
+
+  lastFilteredCount = filtered.length;
+  updateResultCount(filtered.length);
   renderChips();
 
   if (!filtered.length) {
@@ -430,12 +985,17 @@ function render() {
     return;
   }
 
-  els.ghostGrid.innerHTML = filtered.map(ghost => {
+    const cards = filtered.map(ghost => {
     const blink = blinkInfo(ghost.name);
-    const primaryTags = ghost.tags.slice(0, 2);
+    const primaryTags = ghost.tags.slice(0, 3);
     const quickEvidenceNote = ghost.fakeVisibleEvidence?.length
       ? '<span class="mini-note">* imitiert sichtbare Orbs</span>'
       : '';
+    const methodLabel = primaryMethodLabel(ghost.tags);
+    const certainty = certaintyText(ghost.tags);
+    const primaryTool = primaryToolText(ghost.tags);
+    const toolUsage = toolUsageText(ghost.tags);
+    const nextAction = nextActionText(ghost);
 
     return `
       <article class="ghost-card ${cardTypeClass(ghost.tags)}${dimmedGhosts.has(ghost.name) ? ' is-dimmed' : ''}" data-ghost-name="${ghost.name}">
@@ -476,27 +1036,45 @@ function render() {
           </div>
 
           <div class="guide-panel">
-            <div class="guide-line">
-              <span class="note-label">Werte</span>
-              <p class="note-text">${highlightClues(ghost.percentInfo || 'Keine besonderen Prozentwerte.')}</p>
+            <div class="guide-top">
+              <div class="guide-mini guide-mini-action">
+                <span class="decision-label">Aktion</span>
+                <strong class="decision-title">Jetzt im Match</strong>
+                <p class="decision-text">${highlightClues(nextAction)}</p>
+              </div>
             </div>
-            <div class="guide-line">
-              <span class="note-label">Test</span>
+            <div class="guide-priority">
+              <span class="note-label">Jetzt Prüfen</span>
               <p class="note-text">${highlightClues(ghost.keyTest)}</p>
             </div>
-            <div class="guide-line">
-              <span class="note-label">Erkennen</span>
-                <p class="note-text">${highlightClues(ghost.specialNote)}</p>
-            </div>
-            <div class="guide-line">
-              <span class="note-label">Tun</span>
-                <p class="note-text">${highlightClues(ghost.caution)}</p>
-            </div>
+            <details class="ghost-details card-control">
+              <summary class="ghost-details-summary">Mehr Infos</summary>
+              <div class="guide-stack">
+                <div class="guide-line">
+                  <span class="note-label">Werkzeug</span>
+                  <p class="note-text">${highlightClues(primaryTool)}. ${highlightClues(toolUsage)}</p>
+                </div>
+                <div class="guide-line">
+                  <span class="note-label">Wenn Es Passt</span>
+                  <p class="note-text">${highlightClues(ghost.specialNote)}</p>
+                </div>
+                <div class="guide-line">
+                  <span class="note-label">Nicht Verwechseln</span>
+                  <p class="note-text">${highlightClues(ghost.caution)}</p>
+                </div>
+                <div class="guide-line">
+                  <span class="note-label">Werte / Grenze</span>
+                  <p class="note-text">${highlightClues(ghost.percentInfo || 'Keine besonderen Prozentwerte.')}</p>
+                </div>
+              </div>
+            </details>
           </div>
         </div>
       </article>
     `;
-  }).join('');
+    }).join('');
+
+  els.ghostGrid.innerHTML = cards;
 }
 
 function resetAll() {
@@ -549,6 +1127,8 @@ document.addEventListener('click', (e) => {
 
   const card = e.target.closest('.ghost-card');
   if (card) {
+    if (e.target.closest('.card-control')) return;
+
     const ghostName = card.dataset.ghostName;
     if (!ghostName) return;
 
@@ -576,6 +1156,14 @@ if (els.menuToggle) {
   els.menuToggle.addEventListener('click', toggleSidebar);
 }
 
+if (els.jumpGhosts) {
+  els.jumpGhosts.addEventListener('click', showGhostOverview);
+}
+
+if (els.jumpCursed) {
+  els.jumpCursed.addEventListener('click', showCursedCards);
+}
+
 if (els.sidebarOverlay) {
   els.sidebarOverlay.addEventListener('click', () => setSidebarOpen(false));
 }
@@ -589,5 +1177,6 @@ document.addEventListener('keydown', (e) => {
 els.resetBtn.addEventListener('click', resetAll);
 
 render();
+setView('ghosts');
 
 

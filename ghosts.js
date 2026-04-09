@@ -102,7 +102,7 @@
     evidences: ['EMF Level 5', 'Ultraviolett', 'Gefriertemperaturen'],
     huntClass: 'normal',
     huntValue: '50%',
-    tags: ['Fast sicher', 'Strom'],
+    tags: ['Fast sicher', 'Sichtlinie', 'Strom'],
     speedValue: '1,7 / 2,5 m/s',
     speedHint: 'Mit Strom auf Distanz plötzlich schnell',
     percentInfo: '50% Standard; 25% Sanity-Drain durch Fähigkeit.',
