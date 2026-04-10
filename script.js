@@ -12,8 +12,13 @@ const EVIDENCE_META = {
 
 const SPEEDS = [
   { value: 'langsam', label: 'Langsam (0,4 bis 1,6 m/s)' },
-  { value: 'normal', label: 'Normal (1,7 bis 1,8 m/s)' },
+  { value: 'normal', label: 'Standard (1,7 bis 1,8 m/s)' },
   { value: 'schnell', label: 'Schnell (1,9 bis 3,0 m/s)' },
+];
+
+const SPEED_CHANGES = [
+  { value: 'constant', label: 'Bleibt konstant' },
+  { value: 'changes', label: 'Ändert Tempo' }
 ];
 
 const HUNT_LEVELS = [
@@ -47,6 +52,93 @@ const TAGS = [
   'Objekte',
   'Flammen'
 ];
+
+const PRIMARY_TAGS = new Set(['100%-Test', 'Fast sicher', 'Jagdtest']);
+const BEHAVIOR_TAGS = TAGS.filter(tag => !PRIMARY_TAGS.has(tag));
+const TOP_BEHAVIOR_TAGS = [
+  'Audio',
+  'Kamera',
+  'Foto',
+  'Salz',
+  'Licht',
+  'Strom',
+  'Bewegung',
+  'Räucherwerk',
+  'Sichtlinie',
+  'Türen',
+  'Flammen'
+];
+const SEARCH_STOPWORDS = new Set([
+  'der', 'die', 'das', 'den', 'dem', 'des',
+  'ein', 'eine', 'einer', 'einem', 'einen',
+  'und', 'oder', 'mit', 'ohne', 'bei', 'im', 'in', 'am', 'an', 'auf', 'zu', 'vom', 'von',
+  'the', 'a', 'an', 'and', 'or', 'with', 'without', 'for', 'to'
+]);
+
+const EVIDENCE_SEARCH_TERMS = {
+  'EMF Level 5': ['emf', 'emf5', 'level 5'],
+  'Ultraviolett': ['uv', 'ultraviolet', 'fingerabdruck', 'fingies', 'handabdruck', 'handprint', 'fussabdruck', 'fußabdruck', 'footprint'],
+  'Geisterbuch': ['book', 'writing', 'ghost writing', 'ghostwriting', 'buch'],
+  'Gefriertemperaturen': ['freezing', 'freeze', 'frost', 'freezing temps', 'cold', 'cold breath'],
+  'DOTS': ['dots projector', 'dots projektor', 'projektor', 'projector'],
+  'Geisterorbs': ['orb', 'orbs', 'ghost orb', 'ghost orbs'],
+  'Geisterbox': ['spirit box', 'spiritbox', 'box', 'radio']
+};
+
+const TAG_SEARCH_TERMS = {
+  '100%-Test': ['safe test', 'sicherer test', 'eindeutig'],
+  'Fast sicher': ['strong clue', 'starker hinweis'],
+  'Jagdtest': ['hunt test', 'hunting test', 'hunt'],
+  'Audio': ['audio', 'sound', 'parabolmikro', 'sound recorder', 'mikrofon', 'schrei'],
+  'Kamera': ['camera', 'kamera', 'videokamera', 'video'],
+  'Foto': ['photo', 'foto', 'camera', 'video'],
+  'Salz': ['salt', 'salz'],
+  'Licht': ['light', 'licht', 'switch', 'schalter', 'dark', 'dunkel'],
+  'Strom': ['power', 'breaker', 'fuse box', 'sicherungskasten', 'strom'],
+  'Täuscher': ['trickster', 'copy', 'imitate', 'imitation', 'fake'],
+  'Anti-Hide': ['anti hide', 'hide', 'verstecken'],
+  'Bewegung': ['movement', 'move', 'moving', 'bewegung'],
+  'Räucherwerk': ['smudge', 'incense', 'rauch', 'smudge stick'],
+  'Zustände': ['state', 'states', 'aggressiv', 'ruhig', 'schwach'],
+  'Events': ['event', 'events', 'manifestation', 'airball'],
+  'Sichtlinie': ['los', 'line of sight', 'sichtlinie', 'sichtkontakt'],
+  'Passiv': ['passive', 'ruhig', 'wenig aktiv'],
+  'Alterung': ['aging', 'age', 'old', 'young', 'alter'],
+  'Doppelaktion': ['double interaction', 'double', 'twins interaction'],
+  'Türen': ['door', 'doors', 'tür', 'turen', 'haustur'],
+  'Objekte': ['objects', 'object throw', 'werfen'],
+  'Flammen': ['flame', 'flames', 'candle', 'candles', 'kerze', 'kerzen']
+};
+
+const GHOST_SEARCH_TERMS = {
+  'Banshee': ['shriek', 'scream', 'schrei', 'target', 'main target', 'female'],
+  'Dayan': ['movement', 'moving', 'female', 'move speed'],
+  'Dämon': ['daemon', 'demon', 'early hunt', 'smudge', 'crucifix', 'kruzifix'],
+  'Deogen': ['deo breath', 'breath', 'hide', 'spirit box breath'],
+  'Gallu': ['state', 'aggressive', 'weak', 'normal state'],
+  'Goryo': ['camera dots', 'roam', 'wander', 'video dots'],
+  'Hantu': ['cold', 'freezing', 'breath', 'breaker off', 'strom aus'],
+  'Dschinn': ['djinn', 'jinn', 'breaker', 'fuse box', 'los', 'line of sight', 'distance'],
+  'Mare': ['light', 'lights', 'dark', 'darkness', 'switch'],
+  'Moroi': ['curse', 'cursed', 'sanity', 'smudge longer'],
+  'Myling': ['quiet', 'audio', '12m', 'parabolic'],
+  'Obake': ['six finger', 'special fingerprint', 'model change', 'shape shift', 'fingerprint'],
+  'Obambo': ['aggressive state', 'calm state', 'front door timer', 'state switch'],
+  'Oni': ['airball', 'manifestation', 'event', 'visible'],
+  'Onryo': ['candle', 'candles', 'flame', 'three flames', '3 flames'],
+  'Phantom': ['photo', 'video', 'disappear', 'blink'],
+  'Poltergeist': ['throw', 'throws', 'objects', 'multi throw'],
+  'Raiju': ['electronics', 'electronic', 'devices', 'equipment'],
+  'Revenant': ['los', 'line of sight', 'slow', 'fast', 'sight'],
+  'Shade': ['shy', 'inactive', 'shadow', 'no emf 3'],
+  'Spirit': ['smudge', '180 seconds', '3 minutes'],
+  'Thaye': ['aging', 'age', 'young', 'old', 'ouija'],
+  'Der Mimik': ['mimic', 'fake orbs', 'copy', 'copycat', 'imitation'],
+  'Die Zwillinge': ['twins', 'double interaction', 'two speeds', '2 speeds'],
+  'Gespenst': ['wraith', 'salt', 'teleport', 'no salt step'],
+  'Yokai': ['voice', 'talk', 'speaking', 'electronics 2m'],
+  'Yurei': ['door', 'front door', 'smudge', 'wander stop']
+};
 
 const DIFFICULTY_RULES = {
   anfaenger: { evidenceLimit: 3 },
@@ -118,6 +210,36 @@ const HUNT_PROFILE = {
   'Yurei': ['normal']
 };
 
+const SPEED_CHANGE_PROFILE = {
+  'Banshee': ['constant'],
+  'Dayan': ['changes'],
+  'Dämon': ['constant'],
+  'Deogen': ['changes'],
+  'Gallu': ['changes'],
+  'Goryo': ['constant'],
+  'Hantu': ['changes'],
+  'Dschinn': ['changes'],
+  'Mare': ['constant'],
+  'Moroi': ['changes'],
+  'Myling': ['constant'],
+  'Obake': ['constant'],
+  'Obambo': ['changes'],
+  'Oni': ['constant'],
+  'Onryo': ['constant'],
+  'Phantom': ['constant'],
+  'Poltergeist': ['constant'],
+  'Raiju': ['changes'],
+  'Revenant': ['changes'],
+  'Shade': ['constant'],
+  'Spirit': ['constant'],
+  'Thaye': ['changes'],
+  'Der Mimik': ['changes'],
+  'Die Zwillinge': ['changes'],
+  'Gespenst': ['constant'],
+  'Yokai': ['constant'],
+  'Yurei': ['constant']
+};
+
 const GHOST_ORDER = [
   'Banshee',
   'Dayan',
@@ -150,10 +272,27 @@ const GHOST_ORDER = [
 
 const GHOST_ORDER_INDEX = Object.fromEntries(GHOST_ORDER.map((name, index) => [name, index]));
 
-const evidenceState = Object.fromEntries(EVIDENCES.map(e => [e, 0]));
+function createDefaultFilterState() {
+  return {
+    difficulty: 'profi',
+    search: '',
+    strict: false,
+    evidences: Object.fromEntries(EVIDENCES.map(e => [e, 0])),
+    speed: [],
+    speedChange: [],
+    hunt: [],
+    tag: []
+  };
+}
+
+const filterState = createDefaultFilterState();
+const evidenceState = filterState.evidences;
 const dimmedGhosts = new Set();
 let currentView = 'ghosts';
 let lastFilteredCount = 0;
+let lastMapsFilteredCount = 0;
+let lastCursedFilteredCount = 0;
+let lastGhostEvaluations = [];
 const TAROT_CARDS = [
   { name: 'The Sun', effect: 'Gibt 100% Sanity zurück', chance: '5%' },
   { name: 'The Moon', effect: 'Raubt 100% Sanity', chance: '5%' },
@@ -312,6 +451,220 @@ const MONKEY_PAW_WISHES = [
   }
 ];
 
+const CURSED_CARD_SEARCH = [
+  { key: 'tarot', name: 'Tarot Cards', terms: ['tarot', 'cards', 'the sun', 'the moon', 'the tower', 'death', 'the fool', 'the hermit'] },
+  { key: 'summoning', name: 'Beschwörungskreis', terms: ['summoning circle', 'summoning', 'circle', 'kerzen', 'candles', '80 sanity'] },
+  { key: 'mirror', name: 'Verfluchter Spiegel', terms: ['mirror', 'haunted mirror', 'spiegel', 'geisterraum', '20%', '7,5%'] },
+  { key: 'voodoo', name: 'Voodoo Puppe', terms: ['voodoo doll', 'voodoo', 'puppe', 'nadeln', 'pins', 'heart pin'] },
+  { key: 'ouija', name: 'Ouija Brett', terms: ['ouija board', 'ouija', 'brett', 'bye', 'hide and seek', 'knochen'] },
+  { key: 'musicbox', name: 'Musikbox', terms: ['music box', 'musicbox', 'musikbox', 'singing', '20m', '5m'] },
+  { key: 'monkeypaw', name: 'Affenpfote', terms: ['monkey paw', 'monkeypaw', 'affenpfote', 'wunsch', 'wish', 'sicherheit', 'wissen'] }
+];
+
+const MAPS = [
+  {
+    name: '42 Edgefield Road',
+    size: 'small',
+    sizeCode: 'S',
+    sizeLabel: 'Klein',
+    type: 'Haus',
+    floors: '3 Ebenen',
+    lights: '9 Lichter',
+    layout: 'enger Flur, obere Zimmer und Keller',
+    bestFor: 'schnelle Hausrunden mit kurzen Wegen',
+    caution: 'Garage, Keller und obere Schlafräume früh callen.',
+    details: 'Gute Standard-Map für saubere Splits. Die Wege sind kurz, aber mehrere vertikale Checks kosten Zeit, wenn das Team unkoordiniert läuft.',
+    preview: 'assets/maps/42-edgefield-road.png'
+  },
+  {
+    name: 'Grafton Farmhouse',
+    size: 'small',
+    sizeCode: 'S',
+    sizeLabel: 'Klein',
+    type: 'Bauernhaus',
+    floors: '3 Ebenen',
+    lights: '9 Lichter',
+    layout: 'große Räume, Attic und lange Farmhouse-Wege',
+    bestFor: 'Farmhouse-Training mit mehr Bewegungsraum',
+    caution: 'Attic und obere Wege ziehen Hunts länger auseinander.',
+    details: 'Etwas offener als die Häuser, aber mit genug Räumen für falsche Wege. Gerade der Dachboden kostet im Match schnell Zeit.',
+    preview: 'assets/maps/grafton-farmhouse.png'
+  },
+  {
+    name: "Nell's Diner",
+    size: 'small',
+    sizeCode: 'S',
+    sizeLabel: 'Klein',
+    type: 'Restaurant',
+    floors: '1 Ebene',
+    lights: '9 Lichter',
+    layout: 'offen, breit und sehr direkt',
+    bestFor: 'klare Loops, Fotos und schnelle Sichtchecks',
+    caution: 'Offene Bereiche geben wenig sichere Rückzugsräume.',
+    details: 'Sehr lesbare Callouts und wenig vertikale Verwirrung. Dafür fühlt sich das Ganze bei Events und Hunts schnell sehr offen an.',
+    preview: 'assets/maps/nells-diner.png'
+  },
+  {
+    name: '10 Ridgeview Court',
+    size: 'small',
+    sizeCode: 'S',
+    sizeLabel: 'Klein',
+    type: 'Haus',
+    floors: '3 Ebenen',
+    lights: '9 Lichter',
+    layout: 'lange Wege, viel Vertikalität und großer Keller',
+    bestFor: 'klassische Hausrunden mit Team-Splits',
+    caution: 'Wenn oben und Keller gleichzeitig offen sind, verliert man schnell Zeit.',
+    details: 'Eine der größeren Haus-Maps. Für das Team gut, solo aber spürbar langsamer als Tanglewood oder Willow.',
+    preview: 'assets/maps/10-ridgeview-court.png'
+  },
+  {
+    name: '6 Tanglewood Drive',
+    size: 'small',
+    sizeCode: 'S',
+    sizeLabel: 'Klein',
+    type: 'Haus',
+    floors: '2 Ebenen',
+    lights: '9 Lichter',
+    layout: 'kompakt, direkt und kellerlastig',
+    bestFor: 'sehr schnelle Evidenz- und Setup-Runden',
+    caution: 'Garage, Utility und Keller übersehen Teams oft zuerst.',
+    details: 'Sehr starke Standard-Map für schnelle Runs. Kaum Leerwege, aber enge Räume machen Hunts und Fotos manchmal hektisch.',
+    preview: 'assets/maps/6-tanglewood-drive.png'
+  },
+  {
+    name: '13 Willow Street',
+    size: 'small',
+    sizeCode: 'S',
+    sizeLabel: 'Klein',
+    type: 'Haus',
+    floors: '2 Ebenen',
+    lights: '9 Lichter',
+    layout: 'kompakt mit Keller und engem Obergeschoss',
+    bestFor: 'kurze Solo- und Duo-Runden',
+    caution: 'Bad, Hallway oben und Keller sind bei Hunts eng.',
+    details: 'Sehr schnelle Haus-Map mit wenig Leerlauf. Besonders gut, wenn du aggressive Test-Runden oder schnelle Objectives spielen willst.',
+    preview: 'assets/maps/13-willow-street.png'
+  },
+  {
+    name: 'Camp Woodwind',
+    size: 'small',
+    sizeCode: 'S',
+    sizeLabel: 'Klein',
+    type: 'Campsite',
+    floors: '1 Ebene',
+    lights: '9 Lichter',
+    layout: 'offene Außenkarte mit wenig harten Wänden',
+    bestFor: 'schnelle Outdoor-Runden und klare Camp-Callouts',
+    caution: 'Sichtlinien und Wetter beeinflussen Hunts hier stark.',
+    details: 'Sehr direkt zu lesen, aber deutlich offener als Haus-Maps. Audio, Sicht und Loops fühlen sich hier komplett anders an.',
+    preview: 'assets/maps/camp-woodwind.png'
+  },
+  {
+    name: 'Bleasdale Farmhouse',
+    size: 'medium',
+    sizeCode: 'M',
+    sizeLabel: 'Mittel',
+    type: 'Bauernhaus',
+    floors: '3 Ebenen',
+    lights: '8 Lichter',
+    layout: 'große Räume, viele Wege, Attic',
+    bestFor: 'größere Hausrunden mit klaren Splits',
+    caution: 'Attic und weite Rotationen fressen viel Zeit.',
+    details: 'Eine größere Farmhouse-Map mit mehr Laufweg und weniger direkter Struktur als Grafton. Gute Kommunikation macht hier einen großen Unterschied.'
+  },
+  {
+    name: 'Maple Lodge Campsite',
+    size: 'medium',
+    sizeCode: 'M',
+    sizeLabel: 'Mittel',
+    type: 'Campsite',
+    floors: '1 Ebene',
+    lights: '8 Lichter',
+    layout: 'großes Außengelände mit Hütten und Zelten',
+    bestFor: 'Thermo-, Sound- und Team-Split-Runden',
+    caution: 'Wetter, Distanz und Outdoor-LoS machen Tests schwerer.',
+    details: 'Offene Wege und viel Fläche. Sehr gut für Teams, aber deutlich unruhiger zu lesen als die kleinen Häuser.'
+  },
+  {
+    name: 'Point Hope',
+    size: 'medium',
+    sizeCode: 'M',
+    sizeLabel: 'Mittel',
+    type: 'Leuchtturm',
+    floors: '10 Ebenen',
+    lights: '8 Lichter',
+    layout: 'extrem vertikal und linear',
+    bestFor: 'saubere Floor-Callouts und stockwerkweise Suche',
+    caution: 'Wenn der Geist zwischen Levels sitzt, werden Rotationen lang.',
+    details: 'Die Karte lebt von ihrer Vertikalität. Sehr klar im Aufbau, aber brutal, wenn Team und Equipment auf falschen Etagen stehen.'
+  },
+  {
+    name: 'Prison',
+    size: 'medium',
+    sizeCode: 'M',
+    sizeLabel: 'Mittel',
+    type: 'Gefängnis',
+    floors: '2 Ebenen',
+    lights: '8 Lichter',
+    layout: 'sehr breite Hallen mit mehreren Flügeln',
+    bestFor: 'größere Teams und klare Bereichsaufteilung',
+    caution: 'Distanz erschwert Audio- und Geschwindigkeitstests.',
+    details: 'Eine breite Map mit sehr viel Strecke pro Fehlweg. Gute Teamaufteilung spart hier mehr Zeit als auf fast jeder anderen Medium-Map.'
+  },
+  {
+    name: 'Sunny Meadows Restricted',
+    size: 'medium',
+    sizeCode: 'M',
+    sizeLabel: 'Mittel',
+    type: 'Sunny Meadows Restricted',
+    floors: '1 Bereich',
+    lights: '8 Lichter',
+    layout: 'wechselnder Sunny-Bereich mit kürzerer Laufstrecke',
+    bestFor: 'Sunny-Atmosphäre ohne komplette Groß-Map',
+    caution: 'Vor dem Match immer den aktiven Restricted-Teil merken.',
+    details: 'Die Restricted-Variante reduziert Sunny Meadows auf einen mittleren Teilbereich. Dadurch bleibt die Atmosphäre erhalten, aber die Laufwege sind deutlich kontrollierbarer.'
+  },
+  {
+    name: 'Brownstone High School',
+    size: 'large',
+    sizeCode: 'L',
+    sizeLabel: 'Groß',
+    type: 'Schule',
+    floors: '2 Ebenen',
+    lights: '7 Lichter',
+    layout: 'sehr breit mit vielen Klassenräumen',
+    bestFor: 'große Teamrunden und klare Flügel-Aufteilung',
+    caution: 'Ohne Teamcalls fühlt sich die Map schnell leer und lang an.',
+    details: 'Eine klassische Groß-Map mit massig Strecke pro Fehlcheck. Am besten, wenn jeder klar weiß, welchen Bereich er übernimmt.'
+  },
+  {
+    name: 'Sunny Meadows',
+    size: 'large',
+    sizeCode: 'L',
+    sizeLabel: 'Groß',
+    type: 'Anstalt',
+    floors: 'mehrere Bereiche',
+    lights: '7 Lichter',
+    layout: 'riesig, viele Trakte und extrem lange Wege',
+    bestFor: 'lange High-Risk-Runden und volle Team-Lobbies',
+    caution: 'Callouts, Flügel und Rückwege müssen vorab klar sein.',
+    details: 'Die größte Standard-Map. Perfekt, wenn du Atmosphären- oder Teamrunden willst, aber gnadenlos, wenn Equipment und Spieler falsch verteilt sind.'
+  }
+];
+
+const MAP_GROUPS = [
+  { key: 'small', label: 'Kleine Maps', copy: 'Schnelle Haus- und Lernkarten mit 9 aktiven Lichtern.' },
+  { key: 'medium', label: 'Mittlere Maps', copy: 'Mehr Strecke, mehr Calls und 8 aktive Lichter.' },
+  { key: 'large', label: 'Große Maps', copy: 'Große Teamkarten mit langen Wegen und 7 aktiven Lichtern.' }
+];
+
+const SEARCH_UI_CONFIG = {
+  ghosts: { placeholder: 'Geist, Test, Tool oder Synonym' },
+  cursed: { placeholder: 'Verflucht, Effekt, Wunsch oder Alias' },
+  maps: { placeholder: 'Map, Größe oder Detail' }
+};
+
 const els = {
   body: document.body,
   sidebar: document.getElementById('sidebar'),
@@ -319,20 +672,26 @@ const els = {
   menuToggle: document.getElementById('menuToggle'),
   jumpGhosts: document.getElementById('jumpGhosts'),
   jumpCursed: document.getElementById('jumpCursed'),
+  jumpMaps: document.getElementById('jumpMaps'),
   difficulty: document.getElementById('difficulty'),
   searchInput: document.getElementById('searchInput'),
+  searchClearBtn: document.getElementById('searchClearBtn'),
   strictMode: document.getElementById('strictMode'),
   evidenceFilters: document.getElementById('evidenceFilters'),
   speedFilters: document.getElementById('speedFilters'),
+  speedChangeFilters: document.getElementById('speedChangeFilters'),
   huntFilters: document.getElementById('huntFilters'),
   tagFilters: document.getElementById('tagFilters'),
   resetBtn: document.getElementById('resetBtn'),
   resultCount: document.getElementById('resultCount'),
   activeChips: document.getElementById('activeChips'),
+  ghostHelper: document.getElementById('ghostHelper'),
   ghostGrid: document.getElementById('ghostGrid'),
   ghostView: document.getElementById('ghostView'),
   cursedView: document.getElementById('cursedView'),
-  cursedGrid: document.getElementById('cursedGrid')
+  cursedGrid: document.getElementById('cursedGrid'),
+  mapsView: document.getElementById('mapsView'),
+  mapsGrid: document.getElementById('mapsGrid')
 };
 
 function setSidebarOpen(isOpen) {
@@ -354,26 +713,23 @@ function toggleSidebar() {
 
 function setView(view) {
   currentView = view;
-
   const showGhosts = view === 'ghosts';
+  const showCursed = view === 'cursed';
+  const showMaps = view === 'maps';
 
-  if (els.ghostView) {
-    els.ghostView.hidden = !showGhosts;
-  }
+  if (els.ghostView) els.ghostView.hidden = !showGhosts;
+  if (els.cursedView) els.cursedView.hidden = !showCursed;
+  if (els.mapsView) els.mapsView.hidden = !showMaps;
 
-  if (els.cursedView) {
-    els.cursedView.hidden = showGhosts;
-  }
+  els.body.classList.toggle('view-ghosts', showGhosts);
+  els.body.classList.toggle('view-cursed', showCursed);
+  els.body.classList.toggle('view-maps', showMaps);
 
-  els.body.classList.toggle('view-cursed', !showGhosts);
+  if (els.jumpGhosts) els.jumpGhosts.classList.toggle('is-active', showGhosts);
+  if (els.jumpCursed) els.jumpCursed.classList.toggle('is-active', showCursed);
+  if (els.jumpMaps) els.jumpMaps.classList.toggle('is-active', showMaps);
 
-  if (els.jumpGhosts) {
-    els.jumpGhosts.classList.toggle('is-active', showGhosts);
-  }
-
-  if (els.jumpCursed) {
-    els.jumpCursed.classList.toggle('is-active', !showGhosts);
-  }
+  updateSearchUI();
 
   updateResultCount(lastFilteredCount);
 }
@@ -386,12 +742,20 @@ function showCursedCards() {
   setView('cursed');
 }
 
+function showMapsView() {
+  setView('maps');
+}
+
 function updateResultCount(filteredCount = null) {
   if (!els.resultCount) return;
 
   if (currentView === 'cursed') {
-    const cursedCount = els.cursedGrid?.children.length || 0;
-    els.resultCount.textContent = `${cursedCount} Verfluchte Karten`;
+    els.resultCount.textContent = `${lastCursedFilteredCount} Verfluchte Karten`;
+    return;
+  }
+
+  if (currentView === 'maps') {
+    els.resultCount.textContent = `${lastMapsFilteredCount} Maps`;
     return;
   }
 
@@ -400,12 +764,66 @@ function updateResultCount(filteredCount = null) {
   }
 }
 
+function updateSearchUI() {
+  const config = SEARCH_UI_CONFIG[currentView] || SEARCH_UI_CONFIG.ghosts;
+  const hasQuery = Boolean(filterState.search.trim());
+
+  if (els.searchInput) {
+    els.searchInput.placeholder = config.placeholder;
+  }
+
+  if (els.searchClearBtn) {
+    els.searchClearBtn.hidden = !hasQuery;
+  }
+}
+
+function checkedValuesFromDom(filterName) {
+  return [...document.querySelectorAll(`input[data-filter="${filterName}"]:checked`)].map(i => i.value);
+}
+
+function syncFilterStateFromControls() {
+  if (els.difficulty) {
+    filterState.difficulty = els.difficulty.value;
+  }
+
+  if (els.searchInput) {
+    filterState.search = els.searchInput.value.trim();
+  }
+
+  filterState.strict = Boolean(els.strictMode?.checked);
+  filterState.speed = checkedValuesFromDom('speed');
+  filterState.speedChange = checkedValuesFromDom('speedChange');
+  filterState.hunt = checkedValuesFromDom('hunt');
+  filterState.tag = checkedValuesFromDom('tag');
+}
+
+function applyFilterStateToControls() {
+  if (els.difficulty) {
+    els.difficulty.value = filterState.difficulty;
+  }
+
+  if (els.searchInput) {
+    els.searchInput.value = filterState.search;
+  }
+
+  if (els.strictMode) {
+    els.strictMode.checked = filterState.strict;
+  }
+
+  ['speed', 'speedChange', 'hunt', 'tag'].forEach(filterName => {
+    const activeValues = new Set(filterState[filterName] || []);
+    document.querySelectorAll(`input[data-filter="${filterName}"]`).forEach(input => {
+      input.checked = activeValues.has(input.value);
+    });
+  });
+}
+
 function getSearchValue() {
-  return els.searchInput ? els.searchInput.value.trim() : '';
+  return filterState.search;
 }
 
 function isStrictModeEnabled() {
-  return Boolean(els.strictMode?.checked);
+  return filterState.strict;
 }
 
 function buildCheckboxList(container, items, filterName, mapper = item => ({ value: item, label: item })) {
@@ -420,37 +838,223 @@ function buildCheckboxList(container, items, filterName, mapper = item => ({ val
   }).join('');
 }
 
-function includedEvidence() {
-  return EVIDENCES.filter(e => evidenceState[e] === 1);
+function includedEvidence(state = filterState) {
+  const evidences = state.evidences || evidenceState;
+  return EVIDENCES.filter(e => evidences[e] === 1);
 }
 
-function excludedEvidence() {
-  return EVIDENCES.filter(e => evidenceState[e] === -1);
+function excludedEvidence(state = filterState) {
+  const evidences = state.evidences || evidenceState;
+  return EVIDENCES.filter(e => evidences[e] === -1);
 }
 
 function selectedValues(filterName) {
-  return [...document.querySelectorAll(`input[data-filter="${filterName}"]:checked`)].map(i => i.value);
+  return [...(filterState[filterName] || [])];
 }
 
 function normalizeText(value) {
   return (value || '')
     .toLowerCase()
+    .replace(/ß/g, 'ss')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
 }
 
+function tokenizeSearchQuery(value) {
+  return normalizeText(value)
+    .replace(/[_/,+]+/g, ' ')
+    .split(/[\s:;.!?()[\]{}"']+/)
+    .map(token => token.trim())
+    .filter(token => token && !SEARCH_STOPWORDS.has(token));
+}
+
+function createSearchEntries(values, weight, kind, canonical = null) {
+  return uniqueList((values || []).map(compactText).filter(Boolean)).map(value => ({
+    term: normalizeText(value),
+    raw: value,
+    weight,
+    kind,
+    canonical: compactText(canonical || value)
+  }));
+}
+
+function buildGhostSearchEntries(ghost, state = filterState) {
+  const visibleEvidence = visibleEvidences(ghost);
+  const blink = blinkInfo(ghost.name);
+  const entries = [
+    ...createSearchEntries([ghost.name], 22, 'name', ghost.name),
+    ...createSearchEntries(GHOST_SEARCH_TERMS[ghost.name] || [], 18, 'alias', ghost.name),
+    ...visibleEvidence.flatMap(evidence => [
+      ...createSearchEntries([evidence], 14, 'evidence', evidence),
+      ...createSearchEntries(EVIDENCE_SEARCH_TERMS[evidence] || [], 13, 'evidence', evidence)
+    ]),
+    ...(ghost.tags || []).flatMap(tag => [
+      ...createSearchEntries([tag], 12, 'tag', tag),
+      ...createSearchEntries(TAG_SEARCH_TERMS[tag] || [], 11, 'tag', tag)
+    ]),
+    ...createSearchEntries([primaryToolText(ghost.tags || [])], 10, 'tool'),
+    ...createSearchEntries([nextActionText(ghost)], 8, 'action'),
+    ...createSearchEntries([ghost.keyTest], 10, 'test'),
+    ...createSearchEntries([ghost.percentInfo], 8, 'values'),
+    ...createSearchEntries([ghost.speedValue, ghost.speedHint], 7, 'speed'),
+    ...createSearchEntries([ghost.huntValue], 7, 'hunt'),
+    ...createSearchEntries([blink.label, blink.detail], 6, 'blink')
+  ];
+
+  return entries.filter(entry => entry.term);
+}
+
+function matchEntryScore(token, entry) {
+  if (!entry?.term) return 0;
+  if (entry.term === token) return entry.weight + 8;
+  if (entry.term.startsWith(token)) return entry.weight + 5;
+  if (entry.term.includes(token)) return entry.weight + 2;
+  return 0;
+}
+
+function matchSearchTerms(queryValue, searchEntries) {
+  const fullQuery = normalizeText(queryValue).trim();
+  if (!fullQuery) {
+    return { match: true, matchedTokens: [], matchedLabels: [], score: 0 };
+  }
+
+  const queryTokens = tokenizeSearchQuery(fullQuery);
+  if (!queryTokens.length) {
+    return { match: true, matchedTokens: [], matchedLabels: [], score: 0 };
+  }
+
+  const matchedTokens = [];
+  const matchedLabels = [];
+  let score = 0;
+
+  for (const token of queryTokens) {
+    let bestMatch = null;
+    let bestScore = 0;
+
+    for (const entry of searchEntries) {
+      const entryScore = matchEntryScore(token, entry);
+      if (entryScore > bestScore) {
+        bestScore = entryScore;
+        bestMatch = entry;
+      }
+    }
+
+    if (!bestMatch) {
+      return { match: false, matchedTokens: [], matchedLabels: [], score: 0 };
+    }
+
+    matchedTokens.push(token);
+    if (bestMatch.canonical) {
+      matchedLabels.push(bestMatch.canonical);
+    }
+    score += bestScore;
+  }
+
+  if (searchEntries.some(entry => entry.term === fullQuery)) {
+    score += 14;
+  } else if (searchEntries.some(entry => entry.term.includes(fullQuery))) {
+    score += 8;
+  }
+
+  return {
+    match: true,
+    matchedTokens: uniqueList(matchedTokens),
+    matchedLabels: uniqueList(matchedLabels),
+    score
+  };
+}
+
+function cloneFilterState(state = filterState) {
+  return {
+    ...state,
+    evidences: { ...(state.evidences || {}) },
+    speed: [...(state.speed || [])],
+    speedChange: [...(state.speedChange || [])],
+    hunt: [...(state.hunt || [])],
+    tag: [...(state.tag || [])]
+  };
+}
+
+function getEvidenceAssistState(state = filterState) {
+  const assistState = cloneFilterState(state);
+  assistState.search = '';
+  assistState.tag = [];
+  return assistState;
+}
+
+function getEvidenceAvailability(state = filterState) {
+  const assistState = getEvidenceAssistState(state);
+  const include = includedEvidence(assistState);
+  const rule = getDifficultyRule(assistState);
+
+  return Object.fromEntries(EVIDENCES.map(name => {
+    const current = assistState.evidences[name];
+
+    if (current !== 0) {
+      return [name, { canInclude: true, reason: '' }];
+    }
+
+    if (rule.evidenceLimit === 0) {
+      return [name, {
+        canInclude: false,
+        reason: 'In diesem Modus gibt es keine bestätigten Beweise.'
+      }];
+    }
+
+    if (rule.evidenceLimit > 0 && include.length >= rule.evidenceLimit) {
+      return [name, {
+        canInclude: false,
+        reason: `Maximal ${rule.evidenceLimit} Beweise in diesem Modus.`
+      }];
+    }
+
+    const testState = cloneFilterState(assistState);
+    testState.evidences[name] = 1;
+
+    const hasMatchingGhost = ghosts.some(ghost => evaluateGhost(ghost, testState).match);
+
+    return [name, {
+      canInclude: hasMatchingGhost,
+      reason: hasMatchingGhost
+        ? ''
+        : include.length
+          ? `Mit ${include.join(', ')} bleibt mit ${name} kein Geist mehr übrig.`
+          : `${name} passt mit den aktuellen Filtern zu keinem verbleibenden Geist.`
+    }];
+  }));
+}
+
 function renderEvidenceFilters() {
-  const rule = DIFFICULTY_RULES[els.difficulty.value];
-  const included = includedEvidence().length;
+  const rule = DIFFICULTY_RULES[filterState.difficulty];
+  const included = includedEvidence(filterState).length;
+  const availability = getEvidenceAvailability(filterState);
 
   els.evidenceFilters.innerHTML = EVIDENCES.map(name => {
     const state = evidenceState[name];
     const stateName = state === 1 ? 'include' : state === -1 ? 'exclude' : 'off';
-    const disabled = rule.evidenceLimit === 0 || (rule.evidenceLimit > 0 && included >= rule.evidenceLimit && state === 0);
+    const availabilityInfo = availability[name] || { canInclude: true, reason: '' };
+    const blockedByMode = rule.evidenceLimit === 0;
+    const blockedByLimit = rule.evidenceLimit > 0 && included >= rule.evidenceLimit && state === 0;
+    const blockedByCombination = state === 0 && !availabilityInfo.canInclude && !blockedByMode && !blockedByLimit;
+    const disabled = blockedByMode || blockedByLimit || blockedByCombination;
+    const disabledReason = blockedByCombination
+      ? availabilityInfo.reason
+      : blockedByLimit
+        ? `Maximal ${rule.evidenceLimit} Beweise in diesem Modus.`
+        : blockedByMode
+          ? 'In diesem Modus gibt es keine bestätigten Beweise.'
+          : '';
     const marker = state === 1 ? '✓' : state === -1 ? '×' : '';
 
     return `
-      <div class="evidence-option" data-evidence="${name}" data-state="${stateName}" data-disabled="${disabled ? 'true' : 'false'}">
+      <div
+        class="evidence-option"
+        data-evidence="${name}"
+        data-state="${stateName}"
+        data-disabled="${disabled ? 'true' : 'false'}"
+        data-blocked="${blockedByCombination ? 'combination' : blockedByLimit ? 'limit' : blockedByMode ? 'mode' : 'none'}"
+        title="${escapeHtml(disabledReason)}"
+      >
         <div class="evidence-box" aria-hidden="true">${marker}</div>
         ${renderEvidenceBadge(name, { large: true })}
       </div>
@@ -680,14 +1284,6 @@ function renderEvidenceBadge(name, { fake = false, large = false } = {}) {
   `;
 }
 
-function shortText(value, maxLength = 88) {
-  return compactText(value);
-}
-
-function firstSentence(value, maxLength = 90) {
-  return compactText(value);
-}
-
 function highlightClues(value) {
   let text = escapeHtml(compactText(value));
 
@@ -765,78 +1361,208 @@ function tagClass(tag) {
   return map[tag] || 'tag-trait';
 }
 
-function matchesGhost(ghost) {
-  const rule = DIFFICULTY_RULES[els.difficulty.value];
-  const include = includedEvidence();
-  const exclude = excludedEvidence();
-  const selectedSpeed = selectedValues('speed');
-  const selectedHunt = selectedValues('hunt');
-  const selectedTags = selectedValues('tag');
-  const strict = isStrictModeEnabled();
-  const search = normalizeText(getSearchValue());
+function getDifficultyRule(state = filterState) {
+  return DIFFICULTY_RULES[state.difficulty] || DIFFICULTY_RULES.profi;
+}
 
-  const realEvi = (ghost.evidences || []).filter(e => EVIDENCES.includes(e));
-  const shownEvi = visibleEvidences(ghost);
-  const strictEvidenceBase = rule.evidenceLimit === 0
+function getGhostEvidencePools(ghost, state = filterState) {
+  const rule = getDifficultyRule(state);
+  const realEvidence = (ghost.evidences || []).filter(e => EVIDENCES.includes(e));
+  const visibleEvidence = visibleEvidences(ghost);
+  const strictEvidence = rule.evidenceLimit === 0
     ? []
     : rule.evidenceLimit < 0
-      ? realEvi
-      : realEvi.slice(0, Math.min(rule.evidenceLimit, realEvi.length));
-  const visibleEvidenceBase = rule.evidenceLimit === 0 ? [] : shownEvi;
+      ? realEvidence
+      : realEvidence.slice(0, Math.min(rule.evidenceLimit, realEvidence.length));
 
-  let evidenceOk = true;
+  return {
+    rule,
+    realEvidence,
+    visibleEvidence,
+    strictEvidence,
+    excludeBase: state.strict ? strictEvidence : visibleEvidence
+  };
+}
 
-  if (rule.evidenceLimit === 0) {
-    evidenceOk = true;
-  } else if (strict) {
-    evidenceOk = include.length === strictEvidenceBase.length
-      && include.every(e => strictEvidenceBase.includes(e));
-  } else {
-    evidenceOk = include.every(e => visibleEvidenceBase.includes(e));
+function filterOptionLabel(filterName, value) {
+  if (filterName === 'speed') {
+    return SPEEDS.find(entry => entry.value === value)?.label || value;
   }
 
-  const excludeBase = strict ? strictEvidenceBase : visibleEvidenceBase;
-  const excludeOk = exclude.every(e => !excludeBase.includes(e));
+  if (filterName === 'speedChange') {
+    return SPEED_CHANGES.find(entry => entry.value === value)?.label || value;
+  }
+
+  if (filterName === 'hunt') {
+    return HUNT_LEVELS.find(entry => entry.value === value)?.label || value;
+  }
+
+  return value;
+}
+
+function uniqueList(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function hasActiveHardFilters(state = filterState) {
+  return includedEvidence(state).length > 0
+    || excludedEvidence(state).length > 0
+    || state.speed.length > 0
+    || state.speedChange.length > 0
+    || state.hunt.length > 0
+    || Boolean(state.search);
+}
+
+function evaluateGhost(ghost, state = filterState) {
+  const include = includedEvidence(state);
+  const exclude = excludedEvidence(state);
+  const selectedSpeed = state.speed;
+  const selectedSpeedChange = state.speedChange;
+  const selectedHunt = state.hunt;
+  const selectedTags = state.tag;
+  const search = normalizeText(state.search);
+
+  const matchedBy = [];
+  const excludedBy = [];
+  const softMisses = [];
+  let score = 0;
+
+  const { rule, visibleEvidence, strictEvidence, excludeBase } = getGhostEvidencePools(ghost, state);
+
+  if (rule.evidenceLimit !== 0) {
+    if (state.strict) {
+      const exactEvidenceMatch = include.length === strictEvidence.length
+        && include.every(e => strictEvidence.includes(e));
+
+      if (include.length > 0 && exactEvidenceMatch) {
+        matchedBy.push(`Exakte Beweise: ${include.join(', ')}`);
+        score += 18 + include.length * 6;
+      } else if (include.length > 0 && !exactEvidenceMatch) {
+        excludedBy.push(`Beweise passen nicht exakt zu ${ghost.name}`);
+      }
+    } else {
+      include.forEach(evidence => {
+        if (visibleEvidence.includes(evidence)) {
+          matchedBy.push(`Beweis: ${evidence}`);
+          score += 12;
+        } else {
+          excludedBy.push(`Fehlt: ${evidence}`);
+        }
+      });
+    }
+  }
+
+  exclude.forEach(evidence => {
+    if (excludeBase.includes(evidence)) {
+      excludedBy.push(`Widerspruch: ${evidence}`);
+    } else {
+      matchedBy.push(`Nicht: ${evidence}`);
+      score += 6;
+    }
+  });
 
   const ghostSpeedProfile = SPEED_PROFILE[ghost.name] || ['normal'];
+  const speedMatches = selectedSpeed.filter(speed => ghostSpeedProfile.includes(speed));
+  if (selectedSpeed.length) {
+    if (speedMatches.length) {
+      matchedBy.push(`Tempo: ${speedMatches.map(speed => filterOptionLabel('speed', speed)).join(', ')}`);
+      score += 10 + speedMatches.length * 4;
+    } else {
+      excludedBy.push(`Tempo passt nicht zu ${selectedSpeed.map(speed => filterOptionLabel('speed', speed)).join(', ')}`);
+    }
+  }
+
+  const ghostSpeedChangeProfile = SPEED_CHANGE_PROFILE[ghost.name] || [];
+  const speedChangeMatches = selectedSpeedChange.filter(change => ghostSpeedChangeProfile.includes(change));
+  if (selectedSpeedChange.length) {
+    if (speedChangeMatches.length) {
+      matchedBy.push(`Tempoverhalten: ${speedChangeMatches.map(change => filterOptionLabel('speedChange', change)).join(', ')}`);
+      score += 8 + speedChangeMatches.length * 3;
+    } else {
+      excludedBy.push(`Tempoverhalten passt nicht`);
+    }
+  }
+
   const ghostHuntProfile = HUNT_PROFILE[ghost.name] || [ghost.huntClass || 'normal'];
-  const speedOk = selectedSpeed.length === 0 || selectedSpeed.some(s => ghostSpeedProfile.includes(s));
-  const huntOk = selectedHunt.length === 0 || selectedHunt.some(h => ghostHuntProfile.includes(h));
-  const tagOk = selectedTags.every(t => ghost.tags.includes(t));
+  const huntMatches = selectedHunt.filter(hunt => ghostHuntProfile.includes(hunt));
+  if (selectedHunt.length) {
+    if (huntMatches.length) {
+      matchedBy.push(`Jagdgrenze: ${huntMatches.map(hunt => filterOptionLabel('hunt', hunt)).join(', ')}`);
+      score += 10 + huntMatches.length * 4;
+    } else {
+      excludedBy.push(`Jagdgrenze passt nicht zu ${selectedHunt.map(hunt => filterOptionLabel('hunt', hunt)).join(', ')}`);
+    }
+  }
 
-  const blob = [
-    ghost.name,
-    ghost.evidences.join(' '),
-    shownEvi.join(' '),
-    ghost.tags.join(' '),
-    ghost.speedHint,
-    ghost.speedValue,
-    ghost.huntValue,
-    ghost.percentInfo,
-    ghost.keyTest,
-    ghost.huntNote,
-    ghost.specialNote,
-    ghost.caution,
-    blinkInfo(ghost.name).label,
-    blinkInfo(ghost.name).detail
-  ].join(' ');
+  if (search) {
+    const searchMatch = matchSearchTerms(state.search, buildGhostSearchEntries(ghost, state));
+    if (searchMatch.match) {
+      matchedBy.push(`Suche: ${searchMatch.matchedLabels.join(', ') || state.search}`);
+      score += 8 + searchMatch.score;
+    } else {
+      excludedBy.push(`Suche passt nicht`);
+    }
+  }
 
-  const searchOk = !search || normalizeText(blob).includes(search);
+  const matchedTags = selectedTags.filter(tag => ghost.tags.includes(tag));
+  const missingTags = selectedTags.filter(tag => !ghost.tags.includes(tag));
 
-  return evidenceOk && excludeOk && speedOk && huntOk && tagOk && searchOk;
+  matchedTags.forEach(tag => {
+    matchedBy.push(`Verhalten: ${tag}`);
+    score += 10;
+  });
+
+  if (selectedTags.length) {
+    if (matchedTags.length === selectedTags.length) {
+      score += 8;
+    } else {
+      missingTags.forEach(tag => {
+        softMisses.push(`Kein ${tag}`);
+      });
+      excludedBy.push(`Verhalten fehlt: ${missingTags.join(', ')}`);
+    }
+  }
+
+  if (!hasActiveHardFilters(state) && matchedTags.length === 0 && !search) {
+    score += 1;
+  }
+
+  if (ghost.tags.includes('100%-Test')) score += 1.5;
+  if (ghost.tags.includes('Fast sicher')) score += 1;
+
+  return {
+    ghost,
+    match: excludedBy.length === 0,
+    score,
+    matchedBy: uniqueList(matchedBy),
+    excludedBy: uniqueList(excludedBy),
+    softMisses: uniqueList(softMisses)
+  };
+}
+
+function buildChip(type, value, label) {
+  return `<button type="button" class="chip chip-button" data-chip-type="${escapeHtml(type)}" data-chip-value="${escapeHtml(value)}">${escapeHtml(label)}<span class="chip-remove" aria-hidden="true">×</span></button>`;
 }
 
 function renderChips() {
   const chips = [];
-  includedEvidence().forEach(v => chips.push(v));
-  excludedEvidence().forEach(v => chips.push(`Nicht: ${v}`));
-  selectedValues('speed').forEach(v => chips.push(v));
-  selectedValues('hunt').forEach(v => chips.push(v));
-  selectedValues('tag').forEach(v => chips.push(v));
-  if (getSearchValue()) chips.push(getSearchValue());
-  if (isStrictModeEnabled()) chips.push('Exakte Beweise');
 
-  els.activeChips.innerHTML = chips.map(v => `<span class="chip">${v}</span>`).join('');
+  includedEvidence().forEach(value => chips.push(buildChip('evidence-include', value, value)));
+  excludedEvidence().forEach(value => chips.push(buildChip('evidence-exclude', value, `Nicht: ${value}`)));
+  selectedValues('speed').forEach(value => chips.push(buildChip('speed', value, filterOptionLabel('speed', value))));
+  selectedValues('speedChange').forEach(value => chips.push(buildChip('speedChange', value, filterOptionLabel('speedChange', value))));
+  selectedValues('hunt').forEach(value => chips.push(buildChip('hunt', value, filterOptionLabel('hunt', value))));
+  selectedValues('tag').forEach(value => chips.push(buildChip('tag', value, value)));
+
+  if (getSearchValue()) {
+    chips.push(buildChip('search', filterState.search, `Suche: ${filterState.search}`));
+  }
+
+  if (isStrictModeEnabled()) {
+    chips.push(buildChip('strict', 'strict', 'Exakte Beweise'));
+  }
+
+  els.activeChips.innerHTML = chips.join('');
 }
 
 function renderTarotCard() {
@@ -982,12 +1708,13 @@ function renderOuijaCard() {
       <div class="tarot-table">
         ${rows}
       </div>
-      <div class="tarot-notes">
-        <p class="tarot-note"><span class="note-label">Wichtig</span> Nach jeder Frage immer mit <span class="clue-highlight">Bye</span> schließen, damit keine unnötige Sanity verloren geht.</p>
-        <p class="tarot-note"><span class="note-label">Vorsicht</span> <span class="clue-highlight">Hide and Seek</span> kostet <span class="clue-highlight">0%</span>, startet aber die Suche und kann schnell gefährlich werden.</p>
-        <p class="tarot-note"><span class="note-label">Praxis</span> Für schnelle Infos sind <span class="clue-highlight">Knochen</span>, <span class="clue-highlight">Alter</span> und <span class="clue-highlight">Sanity</span> oft die besten Standardfragen.</p>
-      </div>
-    </article>
+        <div class="tarot-notes">
+          <p class="tarot-note"><span class="note-label">Wichtig</span> Nach jeder Frage immer mit <span class="clue-highlight">Bye</span> schließen, damit keine unnötige Sanity verloren geht.</p>
+          <p class="tarot-note"><span class="note-label">EMF-Hinweis</span> Jede erkannte Frage erzeugt am Brett ein <span class="clue-highlight">EMF 2</span>. Hat der Geist <span class="clue-highlight">EMF Level 5</span> als <span class="clue-highlight">nicht versteckten</span> Beweis, kann daraus mit <span class="clue-highlight">33%</span> Chance pro Frage auch <span class="clue-highlight">EMF 5</span> werden.</p>
+          <p class="tarot-note"><span class="note-label">Vorsicht</span> <span class="clue-highlight">Hide and Seek</span> kostet <span class="clue-highlight">0%</span>, startet aber die Suche und kann schnell gefährlich werden.</p>
+          <p class="tarot-note"><span class="note-label">Praxis</span> Für schnelle Infos sind <span class="clue-highlight">Knochen</span>, <span class="clue-highlight">Alter</span> und <span class="clue-highlight">Sanity</span> oft die besten Standardfragen.</p>
+        </div>
+      </article>
   `;
 }
 
@@ -1055,20 +1782,750 @@ function renderMonkeyPawCard() {
 }
 
 function renderCursedCards() {
-  return `${renderTarotCard()}${renderSummoningCard()}${renderMirrorCard()}${renderVoodooCard()}${renderOuijaCard()}${renderMusicBoxCard()}${renderMonkeyPawCard()}`;
+  const renderers = {
+    tarot: renderTarotCard,
+    summoning: renderSummoningCard,
+    mirror: renderMirrorCard,
+    voodoo: renderVoodooCard,
+    ouija: renderOuijaCard,
+    musicbox: renderMusicBoxCard,
+    monkeypaw: renderMonkeyPawCard
+  };
+
+  const query = getSearchValue();
+  const visibleItems = CURSED_CARD_SEARCH
+    .filter(item => {
+      if (!query) return true;
+      return matchSearchTerms(query, [
+        ...createSearchEntries([item.name], 20, 'name', item.name),
+        ...createSearchEntries(item.terms || [], 14, 'alias', item.name)
+      ]).match;
+    });
+
+  lastCursedFilteredCount = visibleItems.length;
+
+  const visibleCards = visibleItems.map(item => renderers[item.key]()).join('');
+
+  if (!visibleCards) {
+    return `<div class="empty"><h3>Keine passenden verfluchten Karten</h3><p>Versuche einen allgemeineren Begriff wie <strong>ouija</strong>, <strong>mirror</strong> oder <strong>tarot</strong>.</p></div>`;
+  }
+
+  return visibleCards;
+}
+
+function matchesMap(map) {
+  const query = getSearchValue();
+  if (!query) return true;
+
+  const searchTerms = [
+    ...createSearchEntries([map.name], 20, 'name', map.name),
+    ...createSearchEntries([map.sizeLabel, map.sizeCode, map.size], 16, 'size', map.sizeLabel),
+    ...createSearchEntries([map.type, map.layout], 12, 'type', map.type),
+    ...createSearchEntries([map.floors, map.lights], 10, 'stats'),
+    ...createSearchEntries([map.bestFor, map.caution, map.details], 8, 'detail'),
+    ...createSearchEntries(map.size === 'small' ? ['small klein haus kurz 9 lichter'] : [], 14, 'size', 'Kleine Map'),
+    ...createSearchEntries(map.size === 'medium' ? ['medium mittel 8 lichter'] : [], 14, 'size', 'Mittlere Map'),
+    ...createSearchEntries(map.size === 'large' ? ['large gross groß 7 lichter'] : [], 14, 'size', 'Große Map')
+  ];
+
+  return matchSearchTerms(query, searchTerms).match;
+}
+
+function renderMapPreview(map) {
+  if (map.preview) {
+    return `
+      <a class="map-preview-link" href="${map.preview}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(map.name)} groß öffnen">
+        <img class="map-preview-image" src="${map.preview}" alt="${escapeHtml(map.name)} Kartenübersicht" loading="lazy">
+      </a>
+    `;
+  }
+
+  const initials = map.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 3)
+    .map(part => part[0])
+    .join('');
+
+  return `
+    <div class="map-preview-placeholder" aria-hidden="true">
+      <span class="map-preview-code">${map.sizeCode}</span>
+      <strong class="map-preview-initials">${escapeHtml(initials)}</strong>
+      <span class="map-preview-hint">${escapeHtml(map.type)}</span>
+    </div>
+  `;
+}
+
+function renderMapCard(map) {
+  return `
+    <article class="map-card map-card-${map.size}">
+      <div class="map-card-header">
+        <div class="map-title-block">
+          <span class="map-size-badge map-size-badge-${map.size}">${map.sizeCode}</span>
+          <div>
+            <h3 class="map-title">${escapeHtml(map.name)}</h3>
+            <p class="map-subtitle">${escapeHtml(map.type)} • ${escapeHtml(map.sizeLabel)}</p>
+          </div>
+        </div>
+        <div class="map-meta-chips">
+          <span class="map-chip">${escapeHtml(map.floors)}</span>
+          <span class="map-chip">${escapeHtml(map.lights)}</span>
+        </div>
+      </div>
+
+      <div class="map-card-body">
+        <div class="map-preview">
+          ${renderMapPreview(map)}
+        </div>
+
+        <div class="map-info">
+          <div class="map-facts">
+            <div class="map-fact">
+              <span class="map-fact-label">Stil</span>
+              <strong class="map-fact-value">${escapeHtml(map.layout)}</strong>
+            </div>
+            <div class="map-fact">
+              <span class="map-fact-label">Gut Für</span>
+              <strong class="map-fact-value">${escapeHtml(map.bestFor)}</strong>
+            </div>
+          </div>
+
+          <div class="map-callout">
+            <span class="note-label">Achte Auf</span>
+            <p class="note-text">${escapeHtml(map.caution)}</p>
+          </div>
+
+          <details class="map-details card-control">
+            <summary class="ghost-details-summary">Mehr Details</summary>
+            <div class="guide-stack map-guide-stack">
+              <div class="guide-line">
+                <span class="note-label">Map Profil</span>
+                <p class="note-text">${escapeHtml(map.details)}</p>
+              </div>
+              <div class="guide-line">
+                <span class="note-label">Quick Read</span>
+                <p class="note-text">${escapeHtml(mapQuickSizeLabel(map.size))} Map mit ${escapeHtml(map.floors)} und ${escapeHtml(map.lights)}. ${escapeHtml(map.bestFor)}.</p>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function mapQuickSizeLabel(size) {
+  if (size === 'small') return 'Kleine';
+  if (size === 'medium') return 'Mittlere';
+  return 'Große';
+}
+
+function renderMaps() {
+  const filteredMaps = MAPS.filter(matchesMap);
+  lastMapsFilteredCount = filteredMaps.length;
+
+  if (!filteredMaps.length) {
+    return `<div class="empty"><h3>Keine passenden Maps</h3><p>Suche leeren oder einen allgemeineren Begriff benutzen.</p></div>`;
+  }
+
+  return MAP_GROUPS.map(group => {
+    const maps = filteredMaps.filter(map => map.size === group.key);
+    if (!maps.length) return '';
+
+    return `
+      <section class="map-section">
+        <div class="map-section-header">
+          <div>
+            <h2 class="map-section-title">${group.label}</h2>
+            <p class="map-section-copy">${group.copy}</p>
+          </div>
+          <span class="map-section-count">${maps.length} Maps</span>
+        </div>
+        <div class="maps-grid">
+          ${maps.map(renderMapCard).join('')}
+        </div>
+      </section>
+    `;
+  }).join('');
+}
+
+function summarizeReasons(reasons, max = 2) {
+  return reasons.slice(0, max).join(' • ');
+}
+
+function renderReasonBlock(label, reasons, className, fallback = '') {
+  const text = reasons.length ? summarizeReasons(reasons) : fallback;
+  if (!text) return '';
+
+  return `
+    <div class="match-line ${className}">
+      <span class="note-label">${label}</span>
+      <p class="note-text">${escapeHtml(text)}</p>
+    </div>
+  `;
+}
+
+function buildZeroResultExplanation(evaluations) {
+  const allReasons = evaluations.flatMap(entry => entry.excludedBy);
+  const counts = new Map();
+
+  allReasons.forEach(reason => {
+    counts.set(reason, (counts.get(reason) || 0) + 1);
+  });
+
+  const topReasons = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([reason]) => `<li>${escapeHtml(reason)}</li>`)
+    .join('');
+
+  if (!topReasons) {
+    return '<p>Die aktuelle Kombination lässt gerade keinen Geist übrig. Nimm einen harten Filter zurück oder prüfe unsichere Beobachtungen nur als Verhalten.</p>';
+  }
+
+  return `
+    <p>Die aktuelle Kombination schließt im Moment alle Geister aus. Am häufigsten blockieren gerade diese Punkte:</p>
+    <ul class="empty-reasons">${topReasons}</ul>
+  `;
+}
+
+function firstSentence(value) {
+  const text = compactText(value);
+  if (!text) return '';
+
+  const match = text.match(/^[^.!?]+[.!?]?/);
+  return (match ? match[0] : text).trim();
+}
+
+function ghostCertaintyRank(ghost) {
+  if (ghost.tags.includes('100%-Test')) return 3;
+  if (ghost.tags.includes('Fast sicher')) return 2;
+  if (ghost.tags.includes('Jagdtest')) return 1;
+  return 0;
+}
+
+function getEvidenceHintSource(ghost, state = filterState) {
+  const pools = getGhostEvidencePools(ghost, state);
+  return state.strict ? pools.strictEvidence : pools.visibleEvidence;
+}
+
+function getBestEvidenceHints(filteredEntries, state = filterState) {
+  const minSplit = helperMinimumSplit(filteredEntries.length);
+  const rule = getDifficultyRule(state);
+  const includeCount = includedEvidence(state).length;
+
+  if (rule.evidenceLimit === 0) {
+    return [];
+  }
+
+  if (rule.evidenceLimit > 0 && includeCount >= rule.evidenceLimit) {
+    return [];
+  }
+
+  return EVIDENCES
+    .filter(evidence => state.evidences[evidence] === 0)
+    .map(evidence => {
+      const withCount = filteredEntries.filter(entry => getEvidenceHintSource(entry.ghost, state).includes(evidence)).length;
+      const withoutCount = filteredEntries.length - withCount;
+
+      return {
+        evidence,
+        withCount,
+        withoutCount,
+        splitScore: Math.min(withCount, withoutCount),
+        difference: Math.abs(withCount - withoutCount)
+      };
+    })
+    .filter(item => item.withCount > 0 && item.withoutCount > 0 && item.splitScore >= minSplit)
+    .sort((a, b) => {
+      if (b.splitScore !== a.splitScore) return b.splitScore - a.splitScore;
+      if (a.difference !== b.difference) return a.difference - b.difference;
+        return a.evidence.localeCompare(b.evidence, 'de');
+      })
+      .slice(0, 3);
+  }
+
+function getBestDirectFilterHints(filteredEntries, state = filterState) {
+  const minSplit = helperMinimumSplit(filteredEntries.length);
+  const filterSpecs = [
+    {
+      type: 'speed',
+      title: 'Tempo',
+      options: SPEEDS.map(item => item.value),
+      getProfile: name => SPEED_PROFILE[name] || ['normal']
+    },
+    {
+      type: 'speedChange',
+      title: 'Tempoverhalten',
+      options: SPEED_CHANGES.map(item => item.value),
+      getProfile: name => SPEED_CHANGE_PROFILE[name] || []
+    },
+    {
+      type: 'hunt',
+      title: 'Jagdgrenze',
+      options: HUNT_LEVELS.map(item => item.value),
+      getProfile: name => HUNT_PROFILE[name] || ['normal']
+    }
+  ];
+
+  return filterSpecs
+    .flatMap(spec => spec.options
+      .filter(option => !(state[spec.type] || []).includes(option))
+      .map(option => {
+        const matches = filteredEntries.filter(entry => spec.getProfile(entry.ghost.name).includes(option)).length;
+        const misses = filteredEntries.length - matches;
+
+        return {
+          type: spec.type,
+          title: spec.title,
+          option,
+          label: filterOptionLabel(spec.type, option),
+          matches,
+          misses,
+          splitScore: Math.min(matches, misses),
+          difference: Math.abs(matches - misses)
+        };
+      }))
+    .filter(item => item.matches > 0 && item.misses > 0 && item.splitScore >= minSplit)
+    .sort((a, b) => {
+      if (b.splitScore !== a.splitScore) return b.splitScore - a.splitScore;
+      if (a.difference !== b.difference) return a.difference - b.difference;
+        return a.label.localeCompare(b.label, 'de');
+      })
+      .slice(0, 3);
+  }
+
+  function behaviorTagGuide(tag) {
+    switch (tag) {
+      case 'Audio': return 'Spezielle Sounds, Schrei oder Hunt-Audio bewusst gegenprüfen.';
+      case 'Kamera': return 'Mit Videokamera und Abstand testen, nicht nur mit bloßem Auge.';
+      case 'Foto': return 'Foto oder Video gezielt als Bestätigung einsetzen.';
+      case 'Salz': return 'Salz legen und genau auf Spuren oder fehlende Spuren achten.';
+      case 'Licht': return 'Licht im Geisterraum gezielt an- und ausschalten und die Reaktion werten.';
+      case 'Strom': return 'Stromlage, Sicherungskasten und aktive Elektronik bewusst vergleichen.';
+      case 'Täuscher': return 'Nie nur einen einzigen Hinweis werten, sondern mehrere Checks kombinieren.';
+      case 'Anti-Hide': return 'Nicht nur verstecken, sondern das Verhalten direkt am Geist prüfen.';
+      case 'Bewegung': return 'Mit und ohne Bewegung direkt dieselbe Situation vergleichen.';
+      case 'Räucherwerk': return 'Räucherwerk mit sauberem Timer als Kernprüfung nutzen.';
+      case 'Zustände': return 'Mehrere Hunts oder Zustandswechsel vergleichen, nicht nur einen Moment.';
+      case 'Events': return 'Vor allem Event-Art, Manifestation und Sichtbarkeit beobachten.';
+      case 'Sichtlinie': return 'Sichtkontakt bewusst herstellen und danach das Tempo lesen.';
+      case 'Passiv': return 'Länger im Geisterraum bleiben und Aktivität unter Anwesenheit vergleichen.';
+      case 'Alterung': return 'Frühe und späte Runde getrennt werten, nicht mischen.';
+      case 'Doppelaktion': return 'Weit getrennte Interaktionen oder zwei feste Hunt-Speeds suchen.';
+      case 'Türen': return 'Auf echte Tür-Slams oder besondere Türbewegungen achten.';
+      case 'Objekte': return 'Genug Wurfobjekte liegen lassen und Mehrfachwürfe provozieren.';
+      case 'Flammen': return 'Kerzen/Flammen mitzählen und Reaktionen genau timen.';
+      default: return 'Dieses Verhalten gezielt testen und mit der Restmenge abgleichen.';
+    }
+  }
+
+  function getBestBehaviorHints(filteredEntries, state = filterState) {
+    const minSplit = helperMinimumSplit(filteredEntries.length);
+    return TOP_BEHAVIOR_TAGS
+      .filter(tag => !(state.tag || []).includes(tag))
+      .map(tag => {
+        const matches = filteredEntries.filter(entry => (entry.ghost.tags || []).includes(tag)).length;
+        const misses = filteredEntries.length - matches;
+
+        return {
+          tag,
+          label: tag,
+          guide: behaviorTagGuide(tag),
+          matches,
+          misses,
+          splitScore: Math.min(matches, misses),
+          difference: Math.abs(matches - misses)
+        };
+      })
+      .filter(item => item.matches > 0 && item.misses > 0 && item.splitScore >= minSplit)
+      .sort((a, b) => {
+        if (b.splitScore !== a.splitScore) return b.splitScore - a.splitScore;
+        if (a.difference !== b.difference) return a.difference - b.difference;
+        return a.label.localeCompare(b.label, 'de');
+      })
+      .slice(0, 3);
+  }
+
+function getBestTestHints(filteredEntries) {
+  const remainingCount = filteredEntries.length;
+  const minRank = remainingCount <= 4 ? 2 : 1;
+  const testPool = filteredEntries.filter(entry => ghostCertaintyRank(entry.ghost) >= minRank);
+  const fallbackPool = filteredEntries.filter(entry => ghostCertaintyRank(entry.ghost) > 0);
+
+  return (testPool.length ? testPool : fallbackPool)
+    .sort((a, b) => {
+      const certaintyDiff = ghostCertaintyRank(b.ghost) - ghostCertaintyRank(a.ghost);
+      if (certaintyDiff !== 0) return certaintyDiff;
+      if (b.score !== a.score) return b.score - a.score;
+      return a.ghost.name.localeCompare(b.ghost.name, 'de');
+    })
+    .slice(0, 3)
+    .map(entry => ({
+      name: entry.ghost.name,
+      label: primaryMethodLabel(entry.ghost.tags),
+      certaintyClass: certaintyClass(entry.ghost.tags),
+      certaintyRank: ghostCertaintyRank(entry.ghost),
+      test: firstSentence(entry.ghost.keyTest),
+      consequence: ghostCertaintyRank(entry.ghost) >= 3
+        ? `Wenn der Test passt, würdest du direkt auf ${entry.ghost.name} schließen und die anderen ${Math.max(remainingCount - 1, 0)} Kandidaten verwerfen.`
+        : ghostCertaintyRank(entry.ghost) >= 2
+          ? `Wenn der Test passt, zieht sich die Restmenge stark auf ${entry.ghost.name} zusammen.`
+          : `Wenn der Test passt, kannst du ${entry.ghost.name} gegen die übrigen Hunts deutlich besser trennen.`
+    }));
+}
+
+function helperStageText(count) {
+  if (count >= 15) {
+    return 'Noch sehr offen: erst sauber aufteilen, dann gezielt testen.';
+  }
+
+  if (count >= 9) {
+    return 'Jetzt lohnen sich vor allem Beobachtungen, die viele Geister direkt trennen.';
+  }
+
+  return 'Fast gelöst: jetzt zählen klare Einzeltests und saubere Gegenchecks.';
+}
+
+function helperMinimumSplit(count) {
+  if (count >= 7) return 3;
+  if (count >= 5) return 2;
+  return 1;
+}
+
+function helperGuaranteedEliminationsText(firstCount, secondCount) {
+  const guaranteed = Math.min(firstCount, secondCount);
+  const betterSide = Math.max(firstCount, secondCount);
+  return `Egal wie der Check ausgeht: mindestens ${guaranteed} raus, bestes Ergebnis ${betterSide} übrig.`;
+}
+
+  function createEvidenceHelperAction(hint) {
+    if (!hint) return null;
+
+    return {
+      key: `evidence:${hint.evidence}`,
+      family: 'evidence',
+      sortValue: hint.splitScore * 10 - hint.difference,
+      kicker: 'Beweis prüfen',
+      title: hint.evidence,
+      badge: renderEvidenceBadge(hint.evidence),
+      body: `Dieser Beweis trennt die Restmenge aktuell am saubersten.`,
+      impact: helperGuaranteedEliminationsText(hint.withCount, hint.withoutCount),
+      compact: `mind. ${hint.splitScore} raus • ${hint.withCount} mit / ${hint.withoutCount} ohne.`
+    };
+  }
+
+  function createDirectHelperAction(hint) {
+    if (!hint) return null;
+
+    return {
+      key: `${hint.type}:${hint.option}`,
+      family: 'direct',
+      sortValue: hint.splitScore * 9 - hint.difference,
+      kicker: hint.title,
+      title: hint.label,
+      badge: `<span class="helper-pill">${escapeHtml(hint.title)}</span>`,
+      body: `Wenn du diesen Direktfilter sicher bestätigen kannst, schrumpft die Restmenge sofort.`,
+      impact: helperGuaranteedEliminationsText(hint.matches, hint.misses),
+      compact: `mind. ${hint.splitScore} raus • ${hint.matches} passen / ${hint.misses} raus.`
+    };
+  }
+
+  function createBehaviorHelperAction(hint) {
+    if (!hint) return null;
+
+    return {
+      key: `behavior:${hint.tag}`,
+      family: 'behavior',
+      sortValue: hint.splitScore * 9 - hint.difference,
+      kicker: 'Verhalten prüfen',
+      title: hint.label,
+      badge: `<span class="helper-pill helper-pill-behavior">${escapeHtml(hint.tag)}</span>`,
+      body: hint.guide,
+      impact: helperGuaranteedEliminationsText(hint.matches, hint.misses),
+      compact: `mind. ${hint.splitScore} raus • ${hint.matches} mit / ${hint.misses} ohne.`
+    };
+  }
+
+  function createTestHelperAction(hint) {
+    if (!hint) return null;
+
+    return {
+      key: `test:${hint.name}`,
+      family: 'test',
+      sortValue: hint.certaintyRank * 14,
+      kicker: 'Starker Test',
+      title: hint.name,
+      badge: `<span class="helper-pill ${hint.certaintyClass}">${escapeHtml(hint.label)}</span>`,
+      body: highlightClues(hint.test),
+      impact: hint.certaintyRank >= 3
+        ? 'Kann den Geist direkt bestätigen.'
+        : hint.certaintyRank >= 2
+          ? 'Sehr starker Hinweis, am besten einmal gegenprüfen.'
+          : 'Hilfreich, aber am besten mit einem zweiten Merkmal absichern.',
+      compact: escapeHtml(hint.label)
+    };
+  }
+
+  function getPrimaryHelperAction(filteredEntries, evidenceHints, directHints, behaviorHints, testHints) {
+    const evidenceAction = createEvidenceHelperAction(evidenceHints[0]);
+    const directAction = createDirectHelperAction(directHints[0]);
+    const behaviorAction = createBehaviorHelperAction(behaviorHints[0]);
+    const testAction = createTestHelperAction(testHints[0]);
+
+    if (filteredEntries.length <= 3 && testAction) {
+      return testAction;
+    }
+
+    if (filteredEntries.length <= 4 && testHints[0]?.certaintyRank >= 3 && testAction) {
+      return testAction;
+    }
+
+    const candidates = [evidenceAction, directAction, behaviorAction, testAction].filter(Boolean);
+    if (!candidates.length) return null;
+
+    return candidates.sort((a, b) => b.sortValue - a.sortValue)[0];
+  }
+
+  function getSecondaryHelperActions(primaryAction, evidenceHints, directHints, behaviorHints, testHints) {
+    const sortedCandidates = [
+      ...evidenceHints.slice(0, 2).map(createEvidenceHelperAction),
+      ...directHints.slice(0, 2).map(createDirectHelperAction),
+      ...behaviorHints.slice(0, 2).map(createBehaviorHelperAction),
+      ...testHints.slice(0, 2).map(createTestHelperAction)
+    ].filter(Boolean);
+
+    const deduped = sortedCandidates
+      .filter(action => !primaryAction || action.key !== primaryAction.key)
+      .filter((action, index, list) => list.findIndex(item => item.key === action.key) === index)
+      .sort((a, b) => b.sortValue - a.sortValue)
+    ;
+
+    const preferred = [];
+    const usedFamilies = new Set(primaryAction?.family ? [primaryAction.family] : []);
+
+    deduped.forEach(action => {
+      if (preferred.length >= 3) return;
+      if (usedFamilies.has(action.family)) return;
+      preferred.push(action);
+      usedFamilies.add(action.family);
+    });
+
+    deduped.forEach(action => {
+      if (preferred.length >= 3) return;
+      if (preferred.some(item => item.key === action.key)) return;
+      preferred.push(action);
+    });
+
+    return preferred;
+  }
+
+  function renderPrimaryHelperAction(action) {
+    if (!action) {
+      return '<p class="helper-empty">Gerade gibt es keinen klaren nächsten Einzelschritt. Nutze am besten die Karten selbst und vergleiche Haupttests.</p>';
+    }
+
+    return `
+      <div class="helper-action-card helper-action-card-primary">
+        <div class="helper-item-head">
+          <span class="helper-pill helper-pill-strong">${escapeHtml(action.kicker)}</span>
+          ${action.badge || ''}
+        </div>
+        <h3 class="helper-action-title">${escapeHtml(action.title)}</h3>
+        <p class="helper-action-copy">${action.body}</p>
+        <p class="helper-action-impact">${action.impact}</p>
+      </div>
+    `;
+  }
+
+  function renderSecondaryHelperActions(actions) {
+    if (!actions.length) {
+      return '<p class="helper-empty">Sobald du mehr sichere Beobachtungen hast, zeigen wir hier die besten Folge-Schritte.</p>';
+    }
+
+    return `
+      <ul class="helper-list">
+        ${actions.map(action => `
+          <li class="helper-item">
+            <div class="helper-item-head">
+              <span class="helper-pill">${escapeHtml(action.kicker)}</span>
+              <strong class="helper-inline-title">${escapeHtml(action.title)}</strong>
+            </div>
+            <p class="helper-item-text">${action.compact}</p>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+  }
+
+  function renderEvidenceHintItems(hints) {
+    if (!hints.length) {
+      return '<p class="helper-empty">Beweislimit erreicht oder kein weiterer Beweis trennt die Restmenge sinnvoll.</p>';
+    }
+
+  return `
+      <ul class="helper-list">
+        ${hints.map(hint => `
+          <li class="helper-item">
+            <div class="helper-item-head">
+              ${renderEvidenceBadge(hint.evidence)}
+            </div>
+            <p class="helper-item-text"><strong>${hint.withCount}</strong> Geister mit, <strong>${hint.withoutCount}</strong> ohne. Sehr guter Split für den nächsten Check.</p>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+  }
+
+function renderDirectFilterHintItems(hints) {
+  if (!hints.length) {
+    return '<p class="helper-empty">Gerade trennt kein einzelner Direktfilter die Restmenge besonders sauber.</p>';
+  }
+
+  return `
+      <ul class="helper-list">
+        ${hints.map(hint => `
+          <li class="helper-item">
+            <div class="helper-item-head">
+              <span class="helper-pill">${escapeHtml(hint.title)}</span>
+              <strong class="helper-inline-title">${escapeHtml(hint.label)}</strong>
+            </div>
+            <p class="helper-item-text"><strong>${hint.matches}</strong> Geister passen, <strong>${hint.misses}</strong> würden rausfallen.</p>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+  }
+
+function renderBehaviorHintItems(hints) {
+  if (!hints.length) {
+    return '<p class="helper-empty">Gerade trennt kein einzelnes Verhaltensmerkmal die Restmenge besonders sauber.</p>';
+  }
+
+  return `
+    <ul class="helper-list">
+      ${hints.map(hint => `
+        <li class="helper-item">
+          <div class="helper-item-head">
+            <span class="helper-pill helper-pill-behavior">${escapeHtml(hint.tag)}</span>
+            <strong class="helper-inline-title">${escapeHtml(hint.label)}</strong>
+          </div>
+          <p class="helper-item-text">${hint.guide}</p>
+          <p class="helper-item-text helper-item-text-subtle"><strong>${hint.matches}</strong> mit, <strong>${hint.misses}</strong> ohne dieses Verhalten.</p>
+        </li>
+      `).join('')}
+    </ul>
+  `;
+}
+
+function renderTestHintItems(hints) {
+  if (!hints.length) {
+    return '<p class="helper-empty">Gerade ist kein klarer 100%- oder Fast-sicher-Test in der Restmenge übrig.</p>';
+  }
+
+  return `
+    <ul class="helper-list">
+      ${hints.map(hint => `
+          <li class="helper-item">
+            <div class="helper-item-head">
+              <strong class="helper-inline-title">${escapeHtml(hint.name)}</strong>
+              <span class="helper-pill ${hint.certaintyClass}">${escapeHtml(hint.label)}</span>
+            </div>
+            <p class="helper-item-text">${highlightClues(hint.test)}</p>
+            <p class="helper-item-text helper-item-text-subtle">${escapeHtml(hint.consequence)}</p>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+  }
+
+function renderGhostHelper(filteredEntries) {
+  if (!filteredEntries.length || filteredEntries.length > 8) {
+    return '';
+  }
+
+  const evidenceHints = getBestEvidenceHints(filteredEntries, filterState);
+  const directHints = getBestDirectFilterHints(filteredEntries, filterState);
+  const behaviorHints = getBestBehaviorHints(filteredEntries, filterState);
+  const testHints = getBestTestHints(filteredEntries);
+  const primaryAction = getPrimaryHelperAction(filteredEntries, evidenceHints, directHints, behaviorHints, testHints);
+  const secondaryActions = getSecondaryHelperActions(primaryAction, evidenceHints, directHints, behaviorHints, testHints)
+    .slice(0, filteredEntries.length <= 4 ? 2 : 3);
+  const helperActionTitles = new Set([
+    primaryAction?.title,
+    ...secondaryActions.map(action => action.title)
+  ].filter(Boolean));
+  const visibleTestHints = testHints
+    .filter(hint => !helperActionTitles.has(hint.name))
+    .slice(0, filteredEntries.length <= 4 ? 2 : 3);
+  const helperCards = [
+    `
+      <article class="helper-card helper-card-focus">
+        <span class="note-label">Jetzt prüfen</span>
+        ${renderPrimaryHelperAction(primaryAction)}
+      </article>
+    `
+  ];
+
+  if (secondaryActions.length) {
+    helperCards.push(`
+      <article class="helper-card">
+        <span class="note-label">Beste Alternativen</span>
+        ${renderSecondaryHelperActions(secondaryActions)}
+      </article>
+    `);
+  }
+
+  if (visibleTestHints.length && filteredEntries.length >= 3) {
+    helperCards.push(`
+      <article class="helper-card">
+        <span class="note-label">Starke Tests</span>
+        ${renderTestHintItems(visibleTestHints)}
+      </article>
+    `);
+  }
+
+  return `
+    <section class="panel helper-panel">
+      <div class="helper-header">
+        <div>
+          <span class="helper-kicker">Eingrenzungshilfe</span>
+          <h2>Noch ${filteredEntries.length} aktive Geister offen</h2>
+          <p class="muted">${helperStageText(filteredEntries.length)}</p>
+        </div>
+      </div>
+
+      <div class="helper-grid">
+        ${helperCards.join('')}
+      </div>
+    </section>
+  `;
 }
 
 function render() {
+  syncFilterStateFromControls();
+  updateSearchUI();
   renderEvidenceFilters();
   if (els.cursedGrid) {
     els.cursedGrid.innerHTML = renderCursedCards();
   }
+  if (els.mapsGrid) {
+    els.mapsGrid.innerHTML = renderMaps();
+  }
 
-  const filtered = ghosts
-    .filter(matchesGhost)
+  const evaluations = ghosts
+    .map(ghost => evaluateGhost(ghost, filterState))
     .sort((a, b) => {
-      const aIndex = GHOST_ORDER_INDEX[a.name];
-      const bIndex = GHOST_ORDER_INDEX[b.name];
+      if (a.match !== b.match) {
+        return a.match ? -1 : 1;
+      }
+
+      if (a.score !== b.score) {
+        return b.score - a.score;
+      }
+
+      const aIndex = GHOST_ORDER_INDEX[a.ghost.name];
+      const bIndex = GHOST_ORDER_INDEX[b.ghost.name];
 
       if (aIndex !== undefined && bIndex !== undefined) {
         return aIndex - bIndex;
@@ -1077,29 +2534,40 @@ function render() {
       if (aIndex !== undefined) return -1;
       if (bIndex !== undefined) return 1;
 
-      return a.name.localeCompare(b.name, 'de');
+      return a.ghost.name.localeCompare(b.ghost.name, 'de');
     });
 
+  const filtered = evaluations.filter(entry => entry.match);
+  const helperEntries = filtered.filter(entry => !dimmedGhosts.has(entry.ghost.name));
+  lastGhostEvaluations = evaluations;
   lastFilteredCount = filtered.length;
   updateResultCount(filtered.length);
   renderChips();
+  if (els.ghostHelper) {
+    const helperMarkup = renderGhostHelper(helperEntries);
+    els.ghostHelper.hidden = !helperMarkup;
+    els.ghostHelper.innerHTML = helperMarkup;
+  }
 
   if (!filtered.length) {
-    els.ghostGrid.innerHTML = `<div class="empty"><h3>Keine passenden Geister</h3><p>Filter lockern oder Suche leeren.</p></div>`;
+    els.ghostGrid.innerHTML = `<div class="empty"><h3>Keine passenden Geister</h3>${buildZeroResultExplanation(evaluations)}</div>`;
     return;
   }
 
-    const cards = filtered.map(ghost => {
+    const cards = filtered.map(({ ghost, matchedBy, excludedBy, softMisses }) => {
     const blink = blinkInfo(ghost.name);
     const primaryTags = ghost.tags.slice(0, 3);
     const quickEvidenceNote = ghost.fakeVisibleEvidence?.length
       ? '<span class="mini-note">* imitiert sichtbare Orbs</span>'
       : '';
-    const methodLabel = primaryMethodLabel(ghost.tags);
-    const certainty = certaintyText(ghost.tags);
     const primaryTool = primaryToolText(ghost.tags);
     const toolUsage = toolUsageText(ghost.tags);
     const nextAction = nextActionText(ghost);
+    const behaviorReasons = matchedBy.filter(reason => reason.startsWith('Verhalten:'));
+    const nonBehaviorReasons = matchedBy.filter(reason => !reason.startsWith('Suche:') && !reason.startsWith('Verhalten:'));
+    const primaryMatchReasons = [...behaviorReasons, ...nonBehaviorReasons];
+    const matchReasons = primaryMatchReasons.length ? primaryMatchReasons : matchedBy;
+    const cautionReasons = softMisses.length ? softMisses : excludedBy;
 
     return `
       <article class="ghost-card ${cardTypeClass(ghost.tags)}${dimmedGhosts.has(ghost.name) ? ' is-dimmed' : ''}" data-ghost-name="${ghost.name}">
@@ -1144,16 +2612,26 @@ function render() {
               <div class="guide-mini guide-mini-action">
                 <span class="decision-label">Aktion</span>
                 <strong class="decision-title">Jetzt im Match</strong>
-                <p class="decision-text">${highlightClues(nextAction)}</p>
+                <p class="decision-text">${highlightClues(firstSentence(nextAction))}</p>
               </div>
             </div>
             <div class="guide-priority">
               <span class="note-label">Jetzt Prüfen</span>
-              <p class="note-text">${highlightClues(ghost.keyTest)}</p>
+              <p class="note-text">${highlightClues(firstSentence(ghost.keyTest))}</p>
             </div>
             <details class="ghost-details card-control">
               <summary class="ghost-details-summary">Mehr Infos</summary>
               <div class="guide-stack">
+                ${renderReasonBlock('Passt Wegen', matchReasons, 'match-line-positive')}
+                ${renderReasonBlock('Unsicher / Fehlt', cautionReasons, 'match-line-negative')}
+                <div class="guide-line">
+                  <span class="note-label">Aktion im Detail</span>
+                  <p class="note-text">${highlightClues(nextAction)}</p>
+                </div>
+                <div class="guide-line">
+                  <span class="note-label">Test im Detail</span>
+                  <p class="note-text">${highlightClues(ghost.keyTest)}</p>
+                </div>
                 <div class="guide-line">
                   <span class="note-label">Werkzeug</span>
                   <p class="note-text">${highlightClues(primaryTool)}. ${highlightClues(toolUsage)}</p>
@@ -1181,40 +2659,69 @@ function render() {
   els.ghostGrid.innerHTML = cards;
 }
 
+function removeChip(type, value) {
+  if (type === 'evidence-include' || type === 'evidence-exclude') {
+    evidenceState[value] = 0;
+  } else if (type === 'speed' || type === 'speedChange' || type === 'hunt' || type === 'tag') {
+    filterState[type] = filterState[type].filter(entry => entry !== value);
+  } else if (type === 'search') {
+    filterState.search = '';
+  } else if (type === 'strict') {
+    filterState.strict = false;
+  }
+
+  applyFilterStateToControls();
+  render();
+}
+
 function resetAll() {
   Object.keys(evidenceState).forEach(k => {
     evidenceState[k] = 0;
   });
 
   dimmedGhosts.clear();
+  filterState.difficulty = 'profi';
+  filterState.search = '';
+  filterState.strict = false;
+  filterState.speed = [];
+  filterState.speedChange = [];
+  filterState.hunt = [];
+  filterState.tag = [];
 
+  applyFilterStateToControls();
   document.querySelectorAll('input[type="checkbox"]').forEach(i => {
-    i.checked = false;
     i.disabled = false;
   });
-
-  if (els.searchInput) els.searchInput.value = '';
-  if (els.strictMode) els.strictMode.checked = false;
-  els.difficulty.value = 'profi';
   render();
 }
 
 buildCheckboxList(els.speedFilters, SPEEDS, 'speed', i => i);
+buildCheckboxList(els.speedChangeFilters, SPEED_CHANGES, 'speedChange', i => i);
 buildCheckboxList(els.huntFilters, HUNT_LEVELS, 'hunt', i => i);
-buildCheckboxList(els.tagFilters, TAGS, 'tag');
+buildCheckboxList(els.tagFilters, TOP_BEHAVIOR_TAGS, 'tag');
 
 document.addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip-button');
+  if (chip) {
+    removeChip(chip.dataset.chipType, chip.dataset.chipValue);
+    return;
+  }
+
   const box = e.target.closest('.evidence-option');
   if (box) {
-    const rule = DIFFICULTY_RULES[els.difficulty.value];
+    syncFilterStateFromControls();
+    const rule = getDifficultyRule(filterState);
     const key = box.dataset.evidence;
     const current = evidenceState[key];
-    const includeCount = includedEvidence().length;
+    const includeCount = includedEvidence(filterState).length;
+    const blockedMode = box.dataset.blocked;
 
     if (rule.evidenceLimit === 0) return;
 
     if (current === 0) {
-      if (rule.evidenceLimit > 0 && includeCount >= rule.evidenceLimit) {
+      if (blockedMode === 'combination') {
+        evidenceState[key] = -1;
+      } else if (rule.evidenceLimit > 0 && includeCount >= rule.evidenceLimit) {
         evidenceState[key] = -1;
       } else {
         evidenceState[key] = 1;
@@ -1256,6 +2763,15 @@ if (els.searchInput) {
   els.searchInput.addEventListener('input', render);
 }
 
+if (els.searchClearBtn) {
+  els.searchClearBtn.addEventListener('click', () => {
+    if (els.searchInput) {
+      els.searchInput.value = '';
+    }
+    render();
+  });
+}
+
 if (els.menuToggle) {
   els.menuToggle.addEventListener('click', toggleSidebar);
 }
@@ -1266,6 +2782,10 @@ if (els.jumpGhosts) {
 
 if (els.jumpCursed) {
   els.jumpCursed.addEventListener('click', showCursedCards);
+}
+
+if (els.jumpMaps) {
+  els.jumpMaps.addEventListener('click', showMapsView);
 }
 
 if (els.sidebarOverlay) {

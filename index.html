@@ -14,18 +14,6 @@
         <h1>Phasmophobia Geisterfilter</h1>
         <p class="muted">Links filtern, rechts direkte Treffer.</p>
       </div>
-
-      <div class="panel">
-        <div class="panel-heading">
-          <h2>Verhalten</h2>
-          <span class="panel-kicker">Feinfilter</span>
-        </div>
-
-        <div class="filter-section">
-          <h3 class="filter-title">Spezialverhalten</h3>
-          <div id="tagFilters" class="stack compact-stack"></div>
-        </div>
-      </div>
     </aside>
 
     <main class="content">
@@ -46,6 +34,7 @@
           <div class="topbar-nav" aria-label="Bereichsnavigation">
             <button id="jumpGhosts" class="jump-button" type="button">Geisterübersicht</button>
             <button id="jumpCursed" class="jump-button" type="button">Verfluchte Karten</button>
+            <button id="jumpMaps" class="jump-button" type="button">Maps</button>
             <button id="resetBtn" class="jump-button jump-button-reset" type="button">Zurücksetzen</button>
           </div>
 
@@ -62,15 +51,18 @@
             </select>
           </label>
 
-          <label class="search-shell topbar-search" for="searchInput" aria-label="Suche">
-            <span class="search-icon" aria-hidden="true">⌕</span>
-            <input
-              id="searchInput"
-              type="text"
-              placeholder="Geist, Test oder Merkmal"
-              autocomplete="off"
-            />
-          </label>
+          <div class="search-shell topbar-search" id="searchShell" aria-label="Suche">
+            <label class="search-input-row" for="searchInput">
+              <span class="search-icon" aria-hidden="true">⌕</span>
+              <input
+                id="searchInput"
+                type="text"
+                placeholder="Geist, Test, Tool oder Synonym"
+                autocomplete="off"
+              />
+            </label>
+            <button id="searchClearBtn" class="search-clear" type="button" aria-label="Suche leeren">×</button>
+          </div>
         </div>
 
         <div id="resultCount" class="result-count">0 Treffer</div>
@@ -78,32 +70,57 @@
 
       <section id="ghostView" class="main-view main-view-ghost">
         <div class="top-filters">
-          <div class="panel panel-evidence-top">
+          <div class="panel panel-filter-hub">
             <div class="panel-heading">
-              <h2>Beweise</h2>
-              <span class="panel-kicker">Hauptfilter</span>
+              <h2>Filter</h2>
+              <span class="panel-kicker">Beweise + Direktfilter</span>
             </div>
-            <div id="evidenceFilters" class="stack evidence-grid"></div>
-          </div>
 
-          <div class="panel panel-inline-filter">
-            <div class="panel-heading">
-              <h2>Geschwindigkeit</h2>
-              <span class="panel-kicker">Direktfilter</span>
-            </div>
-            <div id="speedFilters" class="stack compact-stack"></div>
-          </div>
+            <div class="filter-hub-grid">
+              <section class="filter-hub-section filter-hub-section-evidence">
+                <div class="filter-hub-title-row">
+                  <h3 class="filter-title">Beweise</h3>
+                  <span class="panel-kicker">Hauptfilter</span>
+                </div>
+                <div id="evidenceFilters" class="stack evidence-grid"></div>
+              </section>
 
-          <div class="panel panel-inline-filter">
-            <div class="panel-heading">
-              <h2>Jagdgrenze</h2>
-              <span class="panel-kicker">Direktfilter</span>
+              <section class="filter-hub-section">
+                <div class="filter-hub-title-row">
+                  <h3 class="filter-title">Geschwindigkeit</h3>
+                  <span class="panel-kicker">Direktfilter</span>
+                </div>
+                <div class="filter-section filter-section-inline filter-section-first">
+                  <h3 class="filter-title">Basis-Tempo</h3>
+                  <div id="speedFilters" class="stack compact-stack"></div>
+                </div>
+                <div class="filter-section filter-section-inline">
+                  <h3 class="filter-title">Tempoverhalten</h3>
+                  <div id="speedChangeFilters" class="stack compact-stack"></div>
+                </div>
+              </section>
+
+              <section class="filter-hub-section">
+                <div class="filter-hub-title-row">
+                  <h3 class="filter-title">Jagdgrenze</h3>
+                  <span class="panel-kicker">Direktfilter</span>
+                </div>
+                <div id="huntFilters" class="stack compact-stack"></div>
+              </section>
+
+              <section class="filter-hub-section">
+                <div class="filter-hub-title-row">
+                  <h3 class="filter-title">Verhalten</h3>
+                  <span class="panel-kicker">Feinfilter</span>
+                </div>
+                <div id="tagFilters" class="stack compact-stack behavior-grid"></div>
+              </section>
             </div>
-            <div id="huntFilters" class="stack compact-stack"></div>
           </div>
         </div>
 
         <div id="activeChips" class="chips"></div>
+        <div id="ghostHelper" class="ghost-helper" hidden></div>
         <div id="ghostGrid" class="ghost-grid"></div>
 
         <div class="legend-panel">
@@ -123,6 +140,39 @@
 
       <section id="cursedView" class="main-view main-view-cursed" hidden>
         <div id="cursedGrid" class="ghost-grid cursed-grid"></div>
+      </section>
+
+      <section id="mapsView" class="main-view main-view-maps" hidden>
+        <div class="maps-shell">
+          <article class="panel maps-hero">
+            <div class="maps-hero-copy">
+              <span class="maps-kicker">Map Board</span>
+              <h2>Maps & Routen</h2>
+              <p class="muted">Schneller Überblick über Größenklasse, Ebenen, Lichtlimit und Kartenstil. Die Vorschau lässt sich direkt groß öffnen, damit du im Match schnell zwischen Übersicht und Floorplan wechseln kannst.</p>
+
+              <div class="maps-size-summary" aria-label="Map-Größen">
+                <div class="maps-size-pill maps-size-pill-small">
+                  <span class="maps-size-pill-code">S</span>
+                  <span class="maps-size-pill-copy">Klein • 9 Lichter</span>
+                </div>
+                <div class="maps-size-pill maps-size-pill-medium">
+                  <span class="maps-size-pill-code">M</span>
+                  <span class="maps-size-pill-copy">Mittel • 8 Lichter</span>
+                </div>
+                <div class="maps-size-pill maps-size-pill-large">
+                  <span class="maps-size-pill-code">L</span>
+                  <span class="maps-size-pill-copy">Groß • 7 Lichter</span>
+                </div>
+              </div>
+            </div>
+
+            <a class="maps-overview-link" href="assets/maps/map-size-overview.png" target="_blank" rel="noopener noreferrer" aria-label="Map-Größenübersicht groß öffnen">
+              <img class="maps-overview-image" src="assets/maps/map-size-overview.png" alt="Übersicht der Phasmophobia-Maps nach Größe" />
+            </a>
+          </article>
+
+          <div id="mapsGrid" class="maps-sections"></div>
+        </div>
       </section>
     </main>
   </div>
