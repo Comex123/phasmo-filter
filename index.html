@@ -33,6 +33,7 @@
 
           <div class="topbar-nav" aria-label="Bereichsnavigation">
             <button id="jumpGhosts" class="jump-button" type="button">Geisterübersicht</button>
+            <button id="jumpNoEvidence" class="jump-button" type="button">No Evidence</button>
             <button id="jumpCursed" class="jump-button" type="button">Verfluchte Karten</button>
             <button id="jumpMaps" class="jump-button" type="button">Maps</button>
             <button id="resetBtn" class="jump-button jump-button-reset" type="button">Zurücksetzen</button>
@@ -40,14 +41,15 @@
 
           <label class="topbar-difficulty" for="difficulty">
             <span class="topbar-difficulty-label">Schwierigkeit</span>
+            <span id="difficultyBadge" class="difficulty-badge" aria-hidden="true">PRO · 3B · x3</span>
             <select id="difficulty">
-              <option value="anfaenger">Anfänger (3)</option>
-              <option value="fortgeschritten">Fortgeschritten (3)</option>
-              <option value="profi" selected>Profi (3)</option>
-              <option value="albtraum">Albtraum (2)</option>
-              <option value="wahnsinn">Wahnsinn (1)</option>
-              <option value="apokalypse3">Apokalypse III (0)</option>
-              <option value="benutzerdefiniert">Benutzerdefiniert (?)</option>
+              <option value="anfaenger">EASY · Anfänger · 3B · x1,00</option>
+              <option value="fortgeschritten">MID · Fortgeschritten · 3B · x2,00</option>
+              <option value="profi" selected>PRO · Profi · 3B · x3,00</option>
+              <option value="albtraum">NM · Albtraum · 2B · x4,00</option>
+              <option value="wahnsinn">INS · Wahnsinn · 1B · x6,00</option>
+              <option value="apokalypse3">APO III · 0B · x15,00</option>
+              <option value="benutzerdefiniert">CUSTOM · variabel</option>
             </select>
           </label>
 
@@ -69,6 +71,8 @@
       </div>
 
       <section id="ghostView" class="main-view main-view-ghost">
+        <div id="difficultyInfo" class="difficulty-slot"></div>
+
         <div class="top-filters">
           <div class="panel panel-filter-hub">
             <div class="panel-heading">
@@ -140,6 +144,12 @@
 
       <section id="cursedView" class="main-view main-view-cursed" hidden>
         <div id="cursedGrid" class="ghost-grid cursed-grid"></div>
+      </section>
+
+      <section id="noEvidenceView" class="main-view main-view-noevidence" hidden>
+        <div id="noEvidenceIntro" class="noevidence-intro"></div>
+        <div id="noEvidenceChecks" class="noevidence-checks"></div>
+        <div id="noEvidenceGrid" class="noevidence-grid"></div>
       </section>
 
       <section id="mapsView" class="main-view main-view-maps" hidden>
