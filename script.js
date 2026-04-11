@@ -2905,75 +2905,72 @@ function renderNoEvidenceIntro() {
 
   return `
     <article class="panel noevidence-hero noevidence-hero-compact">
-      <div class="noevidence-hero-copy">
-        <span class="note-label">No Evidence</span>
-        <h2>System</h2>
-        <p class="muted">Immer gleich arbeiten: <strong>Hunt lesen</strong>, dann <strong>Salz / Kamera / Kerzen</strong>, danach <strong>Timer / Audio / Licht</strong>.</p>
+      <div class="noevidence-hero-head is-compact">
+        <div class="noevidence-hero-copy">
+          <span class="note-label">0 Beweise</span>
+          <h2>No Evidence</h2>
+          <p class="muted">Erst <strong>Hunt lesen</strong>. Danach nur die Checks legen, die sofort trennen.</p>
+        </div>
+        <div class="noevidence-setup-strip">
+          ${setupHighlights.map(point => `<span class="noevidence-setup-item">${escapeHtml(point)}</span>`).join('')}
+        </div>
       </div>
-      <div class="noevidence-system-shell">
-        <section class="noevidence-system-block">
-          <span class="note-label">Regeln</span>
-          <div class="noevidence-setup-strip">
-            ${setupHighlights.map(point => `<span class="noevidence-setup-item">${escapeHtml(point)}</span>`).join('')}
-          </div>
-        </section>
-        <section class="noevidence-system-block">
-          <span class="note-label">Filter</span>
-          <div class="noevidence-focus-chips">
-            ${NO_EVIDENCE_FILTERS.map(item => `
-              <button
-                type="button"
-                class="noevidence-focus-btn${filterState.noEvidenceFocus === item.value ? ' is-active' : ''}"
-                data-noevidence-focus="${escapeHtml(item.value)}"
-              >${escapeHtml(item.label)}</button>
-            `).join('')}
-          </div>
-        </section>
-      </div>
-      <div class="noevidence-priority-grid noevidence-priority-grid-compact noevidence-system-flow">
-        <section class="noevidence-priority-card is-start">
+
+      <section class="noevidence-focus-inline">
+        <span class="note-label">Filter</span>
+        <div class="noevidence-focus-chips">
+          ${NO_EVIDENCE_FILTERS.map(item => `
+            <button
+              type="button"
+              class="noevidence-focus-btn${filterState.noEvidenceFocus === item.value ? ' is-active' : ''}"
+              data-noevidence-focus="${escapeHtml(item.value)}"
+            >${escapeHtml(item.label)}</button>
+          `).join('')}
+        </div>
+      </section>
+
+      <section class="noevidence-roadmap">
+        <article class="noevidence-roadmap-card is-start">
           <span class="noevidence-mini-step">1</span>
-          <h3>Hunt lesen</h3>
-          <p class="noevidence-priority-copy">Tempo, Sichtlinie, Strom.</p>
-          <p class="noevidence-priority-meta">${phaseCounts.hunt1} aktiv</p>
-        </section>
-        <section class="noevidence-priority-card is-items">
+          <strong>Hunt lesen</strong>
+          <p>Tempo, Sichtlinie, Strom.</p>
+          <span class="noevidence-roadmap-meta">${phaseCounts.hunt1} aktiv</span>
+        </article>
+        <article class="noevidence-roadmap-card is-items">
           <span class="noevidence-mini-step">2</span>
-          <h3>Sofort legen</h3>
-          <p class="noevidence-priority-copy">Salz, Kamera, Kerzen.</p>
-          <p class="noevidence-priority-meta">${phaseCounts.trip2} aktiv</p>
-        </section>
-        <section class="noevidence-priority-card is-order">
+          <strong>Direkt danach</strong>
+          <p>Salz, Kamera, Kerzen.</p>
+          <span class="noevidence-roadmap-meta">${phaseCounts.trip2} aktiv</span>
+        </article>
+        <article class="noevidence-roadmap-card is-order">
           <span class="noevidence-mini-step">3</span>
-          <h3>Kontrolltests</h3>
-          <p class="noevidence-priority-copy">Timer, Audio, Licht.</p>
-          <p class="noevidence-priority-meta">${phaseCounts.hunt2} aktiv</p>
-        </section>
-        <section class="noevidence-priority-card is-cleanup">
+          <strong>Dann</strong>
+          <p>Timer, Audio, Licht.</p>
+          <span class="noevidence-roadmap-meta">${phaseCounts.hunt2} aktiv</span>
+        </article>
+        <article class="noevidence-roadmap-card is-cleanup">
           <span class="noevidence-mini-step">4</span>
-          <h3>Cleanup</h3>
-          <p class="noevidence-priority-copy">Foto, UV, Türen, Events.</p>
-          <p class="noevidence-priority-meta">${phaseCounts.endgame} aktiv</p>
-        </section>
-      </div>
-      <section class="noevidence-item-order">
+          <strong>Zum Schluss</strong>
+          <p>Foto, UV, Türen, Events.</p>
+          <span class="noevidence-roadmap-meta">${phaseCounts.endgame} aktiv</span>
+        </article>
+      </section>
+
+      <section class="noevidence-item-order is-compact">
         <div class="noevidence-item-order-head">
           <span class="note-label">Item-Reihenfolge</span>
-          <strong>Was zuerst legen und was du damit sofort streichen kannst</strong>
+          <strong>Item -> wen du damit direkt öffnest oder streichst</strong>
         </div>
-        <div class="noevidence-item-order-list">
+        <div class="noevidence-item-order-list is-compact">
           ${NO_EVIDENCE_ITEM_ORDER.map(entry => `
-            <article class="noevidence-item-order-row">
-              <div class="noevidence-item-order-top">
-                <span class="tag tag-gold">${escapeHtml(entry.item)}</span>
-                <span class="noevidence-section-count">${escapeHtml(entry.phase)}</span>
-              </div>
-              <p><strong>Mach:</strong> ${highlightClues(entry.do)}</p>
-              <p><strong>Streich:</strong> ${highlightClues(entry.out)}</p>
+            <article class="noevidence-item-mini">
+              <span class="tag tag-gold">${escapeHtml(entry.item)}</span>
+              <p>${highlightClues(entry.out)}</p>
             </article>
           `).join('')}
         </div>
       </section>
+
       <details class="ghost-details card-control noevidence-setup-details">
         <summary class="ghost-details-summary">Volles Setup</summary>
         <div class="noevidence-preset-grid">
@@ -3029,8 +3026,8 @@ function renderNoEvidenceChecks() {
     <section class="noevidence-cheatsheet">
       <div class="noevidence-flow-head">
         <div>
-          <h2 class="noevidence-flow-title">Nächster Schritt im System</h2>
-          <p class="muted">Teste jetzt nur die Checks, die dir sofort Geister streichen.</p>
+          <h2 class="noevidence-flow-title">Jetzt prüfen</h2>
+          <p class="muted">Nur Checks, die deine Restmenge sofort trennen.</p>
         </div>
       </div>
       <div class="noevidence-next-grid">
@@ -3040,7 +3037,7 @@ function renderNoEvidenceChecks() {
               <span class="noevidence-system-step">${escapeHtml(primaryTest.phase)}</span>
               <span class="noevidence-section-count">${primaryTest.activeNames.length} aktiv</span>
             </div>
-            <h3 class="noevidence-system-title">Jetzt zuerst: ${escapeHtml(primaryTest.title)}</h3>
+            <h3 class="noevidence-system-title">#1 ${escapeHtml(primaryTest.title)}</h3>
             <p class="noevidence-cheat-impact">Trennt: ${escapeHtml(summarizeNoEvidenceTargets(primaryTest.activeNames))}</p>
           </div>
           <div class="noevidence-cheat-body">
@@ -3182,33 +3179,10 @@ function renderNoEvidenceGrid() {
     })
     .join('');
 
-  const sections = NO_EVIDENCE_GROUPS.map(group => {
-    const groupEntries = filteredEntries.filter(entry => entry.guide.group === group.key);
-    if (!groupEntries.length) return '';
-    const orderedEntries = [
-      ...groupEntries.filter(entry => !dimmedGhosts.has(entry.ghost.name)),
-      ...groupEntries.filter(entry => dimmedGhosts.has(entry.ghost.name))
-    ];
-    const activeCount = orderedEntries.filter(entry => !dimmedGhosts.has(entry.ghost.name)).length;
-    const countLabel = `${activeCount} aktiv / ${orderedEntries.length} gesamt`;
-
-    return `
-      <section class="noevidence-section">
-        <div class="noevidence-section-shell">
-        <div class="noevidence-section-header">
-          <div>
-            <span class="noevidence-section-step">${escapeHtml(group.step)}</span>
-            <h2 class="noevidence-section-title">${escapeHtml(group.title)}</h2>
-          </div>
-          <span class="noevidence-section-count">${countLabel}</span>
-        </div>
-        <div class="noevidence-card-grid-shell">
-          ${orderedEntries.map(entry => renderNoEvidenceCard(entry, activeRanks.get(entry.ghost.name))).join('')}
-        </div>
-        </div>
-      </section>
-    `;
-  }).join('');
+  const orderedEntries = [
+    ...filteredEntries.filter(entry => !dimmedGhosts.has(entry.ghost.name)),
+    ...filteredEntries.filter(entry => dimmedGhosts.has(entry.ghost.name))
+  ];
 
   return `
     <section class="noevidence-progress-strip">
@@ -3227,7 +3201,11 @@ function renderNoEvidenceGrid() {
         ${workThroughMarkup || '<span class="noevidence-order-empty">Alle sichtbaren Geister sind aktuell ausgegraut.</span>'}
       </div>
     </section>
-    ${sections}
+    <section class="noevidence-section">
+      <div class="noevidence-card-grid-shell">
+        ${orderedEntries.map(entry => renderNoEvidenceCard(entry, activeRanks.get(entry.ghost.name))).join('')}
+      </div>
+    </section>
   `;
 }
 
