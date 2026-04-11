@@ -393,107 +393,317 @@ const GHOST_ORDER = [
 const GHOST_ORDER_INDEX = Object.fromEntries(GHOST_ORDER.map((name, index) => [name, index]));
 
 const NO_EVIDENCE_LOADOUT = [
-  'Thermometer oder Parabolmikro',
-  'Videokamera',
+  'Thermometer / Parabolmikro',
+  'Kamera',
   'Salz',
   'Kerzen + Feuerzeug',
-  'Räucherwerk',
-  'Foto oder Video',
-  'EMF am Sicherungskasten'
+  'Räucherwerk'
+];
+
+const NO_EVIDENCE_CUSTOM_PRESET = [
+  {
+    title: 'Spieler',
+    points: [
+      'Start-Sanity: 0',
+      'Pillen: 20%',
+      'Sanity-Drain: 200%',
+      'Sprinten: An',
+      'Tempo: 100%'
+    ]
+  },
+  {
+    title: 'Welt',
+    points: [
+      'Aufbauzeit: 0',
+      'Verstecke: Keine',
+      'Breaker Start: An',
+      'Breaker auf Karte: Aus',
+      'Monitor: Aus'
+    ]
+  },
+  {
+    title: 'Geist',
+    points: [
+      'Beweise: 0',
+      'Schonfrist: 0',
+      'Jagddauer: Hoch',
+      'Roaming: Hoch',
+      'Lieblingsraumwechsel: Hoch'
+    ]
+  }
 ];
 
 const NO_EVIDENCE_OPENERS = [
   {
     title: 'Mimik-Orbs',
-    copy: 'Kamera sofort stellen. Sichtbare zusätzliche Orbs halten den Mimik immer offen.'
+    copy: 'Kamera sofort stellen.',
+    result: 'Sichtbare Zusatz-Orbs halten Mimik immer offen.'
   },
   {
     title: 'Salzlaufweg',
-    copy: 'Gespenst tritt nie in Salz. Gallu nur mit Zustandswechsel und Folge-Salz lesen.'
+    copy: 'Salz direkt in den sicheren Laufweg legen.',
+    result: 'Tritt er normal rein, ist Gespenst raus. Bleibt sicheres Salz unberührt, wird Gespenst stark.'
   },
   {
     title: 'Kerzen-Test',
-    copy: 'Drei Blowouts plus schneller Hunt ziehen Onryo sofort nach vorne.'
+    copy: 'Kerzen + Feuerzeug früh bereitstellen.',
+    result: 'Drei Blowouts plus schneller Hunt ziehen Onryo sofort nach vorne.'
   }
+];
+
+const NO_EVIDENCE_FILTERS = [
+  { value: 'all', label: 'Alle' },
+  { value: 'hunt1', label: 'Hunt 1' },
+  { value: 'salz', label: 'Salz' },
+  { value: 'kamera', label: 'Kamera' },
+  { value: 'kerzen', label: 'Kerzen' },
+  { value: 'audio', label: 'Audio' },
+  { value: 'timer', label: 'Timer' }
 ];
 
 const NO_EVIDENCE_GROUPS = [
   {
-    key: 'trip2',
-    step: 'Trip 2',
-    title: 'Frühe harte Checks',
-    intro: 'Diese Geister öffnen dir schon vor oder direkt nach dem ersten Hunt klare Item- oder Raumtests.'
+    key: 'hunt1',
+    step: 'Start-Hunt',
+    title: 'Ersten Hunt lesen',
+    intro: 'Du startest auf 0 Sanity. Beim Reinkommen zuerst nur Tempo, Strom und Sichtlinie lesen.'
   },
   {
-    key: 'hunt1',
-    step: 'Hunt 1',
-    title: 'Tempo-Familie bestimmen',
-    intro: 'Hier liest du nur Tempo, Sichtlinie, Distanz, Strom und Elektronik. Erst die Familie, dann der exakte Geist.'
+    key: 'trip2',
+    step: 'Nach Hunt 1',
+    title: 'Frühe Item-Checks',
+    intro: 'Sobald Hunt 1 gelesen ist: Kamera, Salz und Kerzen legen.'
   },
   {
     key: 'hunt2',
     step: 'Hunt 2',
-    title: 'Kontrolltests & Timer',
-    intro: 'Wenn Hunt 1 nicht reicht, kommen jetzt Smudge-Timer, Audio-Reichweite, Licht und Raumblock ins Spiel.'
+    title: 'Kontrolltests',
+    intro: 'Jetzt Smudge, Audio und Licht sauber gegeneinander prüfen.'
   },
   {
     key: 'endgame',
     step: 'Endgame',
-    title: 'Cleanup & Spezialfälle',
-    intro: 'Die Restgruppe löst du zuletzt über Foto, Events, Türen, UV-Sonderfälle und Interaktionen auf.'
+    title: 'Spezialfälle auflösen',
+    intro: 'Zuletzt nur noch Foto-, Event- und Interaktionsgeister.'
   }
 ];
 
 const NO_EVIDENCE_SYSTEM = [
   {
     step: 'Trip 1',
-    title: 'Setup immer gleich',
-    summary: 'Nicht 27 verschiedene Starts spielen. Immer erst den Standard sauber aufbauen.',
+    title: 'Immer gleich starten',
+    summary: 'Erst den Standard bauen, dann testen.',
     bullets: [
-      'Breaker standardmäßig anlassen.',
-      'Versteck und Fluchtweg vor jedem Test prüfen.',
-      'Geistzimmer nur grob sicher haben, nicht zehn Nebentests gleichzeitig anfangen.'
+      'Breaker an.',
+      'Versteck + Fluchtweg prüfen.',
+      'Zimmer nur grob sichern.'
     ]
   },
   {
     step: 'Trip 2',
-    title: 'Drei Früh-Tests legen',
-    summary: 'Sobald das Zimmer ungefähr klar ist, kommen immer dieselben Checks.',
+    title: 'Früh-Checks legen',
+    summary: 'Immer dieselben drei Checks zuerst.',
     bullets: [
-      'Videokamera für Fake-Orbs vom Mimik.',
-      'Salz im Laufweg für Gespenst und Gallu-Zustände.',
-      'Kerzen plus Feuerzeug für frühe Onryo-Checks.'
+      'Kamera für Mimik-Orbs.',
+      'Salz in den Laufweg.',
+      'Kerzen für Onryo.'
     ]
   },
   {
     step: 'Hunt 1',
     title: 'Nur die Familie lesen',
-    summary: 'Das Ziel der ersten kontrollierten Jagd ist nicht der Call, sondern die richtige Hunt-Familie.',
+    summary: 'Nicht callen, nur die richtige Hunt-Familie finden.',
     bullets: [
-      'Tempo, Sichtlinie, Distanz, Strom und Elektronik bewusst gegeneinander lesen.',
-      'Deogen, Revenant, Hantu, Dschinn, Raiju, Moroi, Thaye, Dayan, Obambo, Gallu und Zwillinge hier abholen.',
-      'Wenn Hunt 1 klar schreit, geh sofort in diese Schiene statt neue Theorien zu bauen.'
+      'Tempo + Sichtlinie lesen.',
+      'Strom + Elektronik mitdenken.',
+      'Keinen Early-Call erzwingen.'
     ]
   },
   {
     step: 'Hunt 2',
-    title: 'Kontrolltests spielen',
-    summary: 'Jetzt kommen die sauberen Gegenchecks für die normale Restgruppe.',
+    title: 'Kontrolltests',
+    summary: 'Jetzt die sauberen Gegenchecks spielen.',
     bullets: [
-      'Smudge-Timer zuerst für Spirit und Dämon.',
-      'Audio- und Reichweitentests für Banshee, Myling und Yokai.',
-      'Raumblock, Licht und Passivität für Shade, Mare und Yurei.'
+      'Smudge-Timer.',
+      'Audio + Reichweite.',
+      'Licht, Raumblock, Passivität.'
     ]
   },
   {
     step: 'Endgame',
     title: 'Restgruppe auflösen',
-    summary: 'Erst ganz am Ende gehst du auf Event-, Foto- und Interaktionsgeister.',
+    summary: 'Spezialfälle erst ganz am Ende lösen.',
     bullets: [
-      'Foto oder Video für Phantom.',
-      'Event-Art für Oni, Objektwürfe für Poltergeist, Spezial-UV oder Modellwechsel für Obake.',
-      'Goryo, Yurei und andere Sonderfälle erst nach Raum, Hunt und Timern auflösen.'
+      'Foto / Video.',
+      'Events + Objektwürfe.',
+      'Türen, UV, Modellwechsel.'
     ]
+  }
+];
+
+const NO_EVIDENCE_TESTS = [
+  {
+    phase: 'Nach Hunt 1',
+    title: 'Salz',
+    ghosts: ['Gespenst', 'Gallu'],
+    action: 'Salz direkt in den sicheren Laufweg legen.',
+    yes: 'Bleibt sicheres Salz unberührt, wird Gespenst stark. Reagiert Salz nach Zustandswechsel anders, wird Gallu interessant.',
+    no: 'Wird Salz normal getreten, ist Gespenst raus.'
+  },
+  {
+    phase: 'Nach Hunt 1',
+    title: 'Kamera / Orbs',
+    ghosts: ['Der Mimik'],
+    action: 'Kamera sofort stellen und auf Zusatz-Orbs achten.',
+    yes: 'Sichtbare Zusatz-Orbs halten den Mimik offen.',
+    no: 'Keine Orbs schließen den Mimik nicht sicher aus.'
+  },
+  {
+    phase: 'Nach Hunt 1',
+    title: 'Kerzen',
+    ghosts: ['Onryo'],
+    action: 'Drei Blowouts sauber zählen und auf den Huntversuch achten.',
+    yes: 'Drei ausgeblasene Kerzen plus schneller Hunt ziehen Onryo sofort nach vorne.',
+    no: 'Ohne sauberes Kerzen-Timing ist Onryo nicht klar lesbar.'
+  },
+  {
+    phase: 'Start-Hunt',
+    title: 'Hunt-Tempo',
+    ghosts: ['Deogen', 'Revenant', 'Dayan', 'Moroi', 'Thaye', 'Obambo', 'Die Zwillinge', 'Gallu', 'Hantu', 'Dschinn', 'Raiju'],
+    action: 'Nur Tempo, Distanz, Sichtlinie und Vergleich zwischen Hunts lesen.',
+    yes: 'Große Tempoabweichungen ziehen sofort auf eine Hunt-Familie zusammen.',
+    no: 'Normales Tempo schiebt diese Geister nach hinten, schließt sie aber nicht alle direkt aus.'
+  },
+  {
+    phase: 'Start-Hunt',
+    title: 'Strom / Breaker',
+    ghosts: ['Hantu', 'Dschinn', 'Raiju'],
+    action: 'Breaker an und aus bewusst gegeneinander testen.',
+    yes: 'Kalt + Breaker aus spricht für Hantu. Burst bei Breaker an für Dschinn. Elektronik-Speed für Raiju.',
+    no: 'Ohne Stromvergleich bleiben Hantu, Dschinn und Raiju oft offen.'
+  },
+  {
+    phase: 'Hunt 2',
+    title: 'Smudge-Timer',
+    ghosts: ['Spirit', 'Dämon'],
+    action: 'Nach dem Smudge den Timer sauber stoppen.',
+    yes: 'Hunt nach etwa 60 Sekunden spricht stark für Dämon. Hunt vor 180 Sekunden schließt Spirit aus.',
+    no: 'Lange Ruhe stützt Spirit, bestätigt ihn aber nicht allein.'
+  },
+  {
+    phase: 'Hunt 2',
+    title: 'Audio',
+    ghosts: ['Banshee', 'Myling', 'Yokai', 'Moroi'],
+    action: 'Parabolmikro, Sound Recorder, Stimme und Hörweite bewusst nutzen.',
+    yes: 'Schrei spricht für Banshee, späte Schritte für Myling, Nah-Audio für Yokai, Fluch-Audio für Moroi.',
+    no: 'Ohne sauberen Audiovergleich bleiben diese Geister oft nur Vermutungen.'
+  },
+  {
+    phase: 'Hunt 2',
+    title: 'Licht',
+    ghosts: ['Mare'],
+    action: 'Im Geistzimmer Licht bewusst an- und ausschalten.',
+    yes: 'Licht-aus-Verhalten und frühere Hunts im Dunkeln sprechen für Mare.',
+    no: 'Helles, stabiles Verhalten drückt Mare stark nach unten.'
+  },
+  {
+    phase: 'Endgame',
+    title: 'Foto / Video',
+    ghosts: ['Phantom'],
+    action: 'Event oder Manifestation fotografieren oder filmen.',
+    yes: 'Verschwindet der Geist dabei, ist Phantom sehr stark.',
+    no: 'Bleibt er normal sichtbar, sinkt Phantom deutlich ab.'
+  },
+  {
+    phase: 'Endgame',
+    title: 'Türen',
+    ghosts: ['Yurei'],
+    action: 'Auf volle Türbewegungen und den Smudge-Gegencheck achten.',
+    yes: 'Klarer Tür-Slam plus 90 Sekunden ohne Wandern spricht für Yurei.',
+    no: 'Normale kleine Türbewegungen beweisen Yurei nicht.'
+  },
+  {
+    phase: 'Endgame',
+    title: 'UV / Modellwechsel',
+    ghosts: ['Obake'],
+    action: 'Auf Spezial-UV oder einen Modellwechsel im Hunt warten.',
+    yes: '6-Finger-Print oder Hunt-Shapeshift macht Obake sehr stark.',
+    no: 'Normale Prints sagen fast nichts, fehlendes UV schließt Obake nicht sofort aus.'
+  },
+  {
+    phase: 'Endgame',
+    title: 'Events',
+    ghosts: ['Oni'],
+    action: 'Event-Art und Sichtbarkeit lesen.',
+    yes: 'Volle Manifestation und kein Airball sprechen für Oni.',
+    no: 'Ein echter Airball drückt Oni stark nach unten.'
+  },
+  {
+    phase: 'Endgame',
+    title: 'Objektwürfe',
+    ghosts: ['Poltergeist'],
+    action: 'Kleinen Wurfkram liegen lassen und auf Mehrfachwürfe warten.',
+    yes: 'Mehrere Objekte gleichzeitig oder extrem harte Würfe sprechen stark für Poltergeist.',
+    no: 'Ein leerer Raum macht den Test fast wertlos.'
+  },
+  {
+    phase: 'Endgame',
+    title: 'Kamera + Raumtreue',
+    ghosts: ['Goryo'],
+    action: 'Kamera-Test und echtes Roaming zusammen lesen.',
+    yes: 'Bleibt der Geist nah am Raum und wirkt DOTS nur per Kamera plausibel, steigt Goryo.',
+    no: 'Klarer Raumwechsel oder weites Roaming schließt Goryo fast aus.'
+  }
+];
+
+const NO_EVIDENCE_ITEM_ORDER = [
+  {
+    item: 'Salz',
+    phase: 'Nach Hunt 1',
+    do: 'In den sicheren Laufweg legen.',
+    out: 'Salz getreten = Gespenst raus.'
+  },
+  {
+    item: 'Kamera',
+    phase: 'Nach Hunt 1',
+    do: 'Sofort auf Zusatz-Orbs stellen.',
+    out: 'Kein harter Ausschluss, nur Mimik offen.'
+  },
+  {
+    item: 'Kerzen',
+    phase: 'Nach Hunt 1',
+    do: 'Drei Blowouts sauber zählen.',
+    out: 'Kein sicherer Rauswurf, Onryo wird nur stark.'
+  },
+  {
+    item: 'Räucherwerk',
+    phase: 'Hunt 2',
+    do: 'Timer nach sauberem Smudge stoppen.',
+    out: 'Hunt vor 180 s = Spirit raus. Hunt um 60 s = Dämon stark.'
+  },
+  {
+    item: 'Audio',
+    phase: 'Hunt 2',
+    do: 'Parabolmikro, Recorder und Hörweite testen.',
+    out: 'Kein harter Rauswurf, nur Banshee/Myling/Yokai/Moroi lesen.'
+  },
+  {
+    item: 'Licht',
+    phase: 'Hunt 2',
+    do: 'Im Geistzimmer bewusst an und aus schalten.',
+    out: 'Licht an / stabiles helles Verhalten drückt Mare stark.'
+  },
+  {
+    item: 'Foto',
+    phase: 'Endgame',
+    do: 'Event oder Manifestation fotografieren.',
+    out: 'Bleibt normal sichtbar = Phantom sinkt stark.'
+  },
+  {
+    item: 'UV',
+    phase: 'Endgame',
+    do: 'Nur auf Spezial-UV achten.',
+    out: 'Normale Prints sagen fast nichts; Spezial-UV hält Obake offen.'
   }
 ];
 
@@ -515,6 +725,7 @@ const NO_EVIDENCE_GUIDES = {
     focus: 'Bewegung',
     tools: ['Bewegung', 'Hunt-Vergleich'],
     first: 'Im Hunt einmal still, einmal in ihrer Nähe bewegen.',
+    tempo: 'Nah am Geist: Bewegung macht sie schnell, Stillstand macht sie langsam.',
     watch: 'Mit Bewegung im 10-Meter-Radius wird Dayan schnell, ohne Bewegung deutlich langsamer.',
     exclude: 'Ein einzelner Hunt ohne direkten Vergleich reicht nicht.',
     bonus: 'Wenn sie bei Bewegung früh jagt und still deutlich ruhiger wirkt, wird Dayan sehr stark.',
@@ -537,6 +748,7 @@ const NO_EVIDENCE_GUIDES = {
     focus: 'Anti-Hide',
     tools: ['Hunt', 'Geisterbox'],
     first: 'Im Hunt nicht nur verstecken, sondern bewusst sein Nah-Tempo lesen.',
+    tempo: 'Weit weg extrem schnell, direkt an dir extrem langsam.',
     watch: 'Deogen ist weit weg extrem schnell und direkt an dir extrem langsam.',
     exclude: 'Wenn Verstecken normal klappt und kein Nah-Tempo da ist, ist es kein Deogen.',
     bonus: 'Schweres Atem-Geräusch in der Geisterbox ist ein Bonus-Tell, aber das Hunt-Verhalten ist noch sauberer.',
@@ -548,6 +760,7 @@ const NO_EVIDENCE_GUIDES = {
     focus: 'Zustände',
     tools: ['Salz', 'Räucherwerk', 'Kruzifix', 'Mehrere Hunts'],
     first: 'Zustandswechsel provozieren und mehrere Hunts direkt vergleichen.',
+    tempo: 'Tempo springt je nach Zustand. Ein einzelner Hunt reicht nie.',
     watch: 'Tempo, Jagdgrenze, Smudge-Dauer und Salzverhalten können zwischen normal, enraged und weakened springen.',
     exclude: 'Ein einzelner Hunt reicht nie. Ohne echten Wechsel ist Gallu kaum sauber belegbar.',
     bonus: 'Wenn er nach Triggern Salz ignoriert und später wieder anders reagiert, ist Gallu sehr heiß.',
@@ -570,6 +783,7 @@ const NO_EVIDENCE_GUIDES = {
     focus: 'Strom',
     tools: ['Breaker aus', 'Hunt', 'Temperatur'],
     first: 'Breaker später gezielt ausmachen und einen Hunt in kalten und warmen Bereichen lesen.',
+    tempo: 'Kalt schnell, warm langsam. Kein normales Sichtlinien-Tempo.',
     watch: 'Hantu hat kein normales LOS-Speedup, wird kalt schnell und warm langsam. Bei Strom aus kann Hunt-Atem sichtbar werden.',
     exclude: 'Normales Sichtlinien-Speedup oder kein Temperaturbezug spricht gegen Hantu.',
     bonus: 'Sichtbarer kalter Atem im Hunt ist sein klarster Tell.',
@@ -581,6 +795,7 @@ const NO_EVIDENCE_GUIDES = {
     focus: 'Strom',
     tools: ['Breaker an', 'Hunt', 'Distanz'],
     first: 'Breaker anlassen und mit Sichtkontakt plus mehr als 3 Metern Abstand testen.',
+    tempo: 'Mit Breaker an + Sichtkontakt + Distanz fester Burst auf etwa 2,5 m/s.',
     watch: 'Dschinn bekommt dann seinen festen Burst auf etwa 2,5 m/s.',
     exclude: 'Schaltet der Geist den Breaker selbst aus, ist es kein Dschinn.',
     bonus: 'Mit Breaker aus verliert er sein wichtigstes Hunt-Merkmal fast komplett.',
@@ -603,6 +818,7 @@ const NO_EVIDENCE_GUIDES = {
     focus: 'Audio',
     tools: ['Geisterbox', 'Parabolmikro', 'Sound Recorder', 'Sanity'],
     first: 'Über Geisterbox oder Audio-Tools den Fluch auslösen und danach Sanity plus Hunt-Tempo lesen.',
+    tempo: 'Mit sinkender Sanity immer schneller.',
     watch: 'Mit sinkender Sanity wird Moroi immer schneller.',
     exclude: 'Tempo ohne Sanity-Kontext ist beim Moroi kein sauberer Test.',
     bonus: 'Räucherwerk blendet ihn länger als normal. Haus verlassen pausiert den Fluch.',
@@ -636,6 +852,7 @@ const NO_EVIDENCE_GUIDES = {
     focus: 'Zustände',
     tools: ['Mehrere Hunts', 'Timer', 'Haustür-Zeitpunkt'],
     first: 'Mehrere Hunts über Zeit vergleichen, nicht nur einen schnellen Run.',
+    tempo: 'Wechselt zwischen ruhigem und aggressivem Tempo, auch ohne Sichtkontakt.',
     watch: 'Obambo wechselt zwischen ruhigem und aggressivem Zustand, dadurch springen Tempo und Jagdschwelle.',
     exclude: 'Ein einzelner schneller Hunt reicht nicht für Obambo.',
     bonus: 'Der erste große Wechsel kommt oft nach dem Öffnen der Haustür, weitere folgen zyklisch.',
@@ -691,6 +908,7 @@ const NO_EVIDENCE_GUIDES = {
     focus: 'Strom',
     tools: ['Aktive Elektronik', 'Hunt', 'Interferenz'],
     first: 'Mit aktiver Elektronik und ohne Elektronik zwei Hunts oder zwei Phasen vergleichen.',
+    tempo: 'Nahe aktiver Elektronik deutlich schneller.',
     watch: 'Raiju wird nahe aktiver Geräte deutlich schneller und stört Elektronik derselben Etage schon aus 15 Metern.',
     exclude: 'Ohne Geräteeinfluss fehlt sein Haupttell.',
     bonus: 'Gezielt abgelegte Geräte sind der sauberste Raiju-Test.',
@@ -702,6 +920,7 @@ const NO_EVIDENCE_GUIDES = {
     focus: 'Sichtlinie',
     tools: ['Sicheres Versteck', 'Hunt', 'Peek'],
     first: 'Sicher verstecken, dann kurz peeken und Sichtlinie sofort wieder brechen.',
+    tempo: 'Ohne Ziel sehr langsam, mit Ziel brutal schnell.',
     watch: 'Ohne Ziel ist Revenant extrem langsam, mit sicherem Ziel brutal schnell.',
     exclude: 'Normales konstantes Tempo spricht gegen Revenant.',
     bonus: 'Das ist einer der saubersten Hunt-Tests im ganzen Spiel.',
@@ -735,6 +954,7 @@ const NO_EVIDENCE_GUIDES = {
     focus: 'Alterung',
     tools: ['Frühe Hunts', 'Späte Hunts', 'Ouija optional'],
     first: 'Frühe und späte Hunts direkt vergleichen.',
+    tempo: 'Früh schnell und aggressiv, später deutlich langsamer.',
     watch: 'Thaye startet schnell und aggressiv und wird mit Zeit im Raum deutlich langsamer.',
     exclude: 'Bleibt er langfristig gleich gefährlich, fällt Thaye stark ab.',
     bonus: 'Ouija kann seine Alterung zusätzlich stützen.',
@@ -757,6 +977,7 @@ const NO_EVIDENCE_GUIDES = {
     focus: 'Doppelaktion',
     tools: ['Interaktionen', 'Mehrere Hunts', 'Distanzvergleich'],
     first: 'Auf weit getrennte Doppelinteraktionen und leicht unterschiedliche Hunt-Speeds achten.',
+    tempo: 'Ein Hunt etwas langsamer, der nächste etwas schneller.',
     watch: 'Ein Hunt wirkt minimal langsamer, der nächste minimal schneller.',
     exclude: 'Ein einziges Tempo bestätigt die Zwillinge nie.',
     bonus: 'Es fühlt sich oft an, als wäre der Geist fast gleichzeitig an zwei Orten aktiv.',
@@ -797,11 +1018,42 @@ const NO_EVIDENCE_GUIDES = {
   }
 };
 
+const NO_EVIDENCE_QUICK_GUIDE = {
+  'Banshee': { first: 'Parabolmikro oder Sound Recorder nutzen.', signal: 'Schrei hören = bleibt drin.', exclude: 'Kein Schrei = nicht callen.' },
+  'Dayan': { first: 'Im Hunt still vs. bewegen vergleichen.', signal: 'Nah an dir: Bewegung schnell, still langsam.', exclude: 'Ohne direkten Vergleich nicht callen.' },
+  'Dämon': { first: 'Nach Smudge sofort 60 s timen.', signal: 'Hunt nach ~60 s = Dämon stark.', exclude: 'Kein früher Rehunt = Dämon sinkt.' },
+  'Deogen': { first: 'Verstecken und Nah-Tempo testen.', signal: 'Fern schnell, nah extrem langsam.', exclude: 'Versteck klappt normal = Deogen raus.' },
+  'Gallu': { first: 'Mehrere Hunts nach Triggern vergleichen.', signal: 'Tempo oder Zustand springt.', exclude: 'Nur ein Hunt = Gallu nicht callen.' },
+  'Goryo': { first: 'Kamera und Raumtreue prüfen.', signal: 'Bleibt nah am Raum.', exclude: 'Klarer Raumwechsel = Goryo raus.' },
+  'Hantu': { first: 'Breaker aus und kalt/warm vergleichen.', signal: 'Kalt schnell, warm langsam.', exclude: 'Normales LOS-Tempo = Hantu raus.' },
+  'Dschinn': { first: 'Breaker an + Distanz + Sichtkontakt.', signal: 'Burst bei mehr als 3 m Abstand.', exclude: 'Breaker selbst aus = Dschinn raus.' },
+  'Mare': { first: 'Licht im Geistzimmer an/aus testen.', signal: 'Im Dunkeln stärker.', exclude: 'Schaltet Licht an = Mare raus.' },
+  'Moroi': { first: 'Fluch auslösen, dann Tempo lesen.', signal: 'Mit sinkender Sanity schneller.', exclude: 'Tempo ohne Sanity nicht callen.' },
+  'Myling': { first: 'Hörweite im Hunt prüfen.', signal: 'Später hörbar als normal.', exclude: 'Frühe klare Schritte = Myling sinkt.' },
+  'Obake': { first: 'Auf Spezial-UV oder Shapeshift warten.', signal: '6 Finger oder Modellwechsel.', exclude: 'Normale UV allein nicht callen.' },
+  'Obambo': { first: 'Mehrere Hunts über Zeit vergleichen.', signal: 'Ruhig/aggressiv wechselt.', exclude: 'Ein schneller Hunt reicht nicht.' },
+  'Oni': { first: 'Event-Art lesen.', signal: 'Volle Manifestation, kein Airball.', exclude: 'Airball = Oni raus.' },
+  'Onryo': { first: 'Drei Blowouts sauber zählen.', signal: '3 Kerzen -> Huntversuch.', exclude: 'Ohne Kerzen-Timing nicht callen.' },
+  'Phantom': { first: 'Event oder Manifestation fotografieren.', signal: 'Verschwindet auf Foto oder Video.', exclude: 'Bleibt im Bild = Phantom sinkt.' },
+  'Poltergeist': { first: 'Wurfkram liegen lassen.', signal: 'Mehrfachwurf oder harter Wurf.', exclude: 'Einzelwurf reicht nie.' },
+  'Raiju': { first: 'Mit und ohne Elektronik vergleichen.', signal: 'Nahe Geräte deutlich schneller.', exclude: 'Ohne Geräteeinfluss sinkt Raiju.' },
+  'Revenant': { first: 'Aus sicherem Versteck kurz peeken.', signal: 'Ohne Ziel langsam, mit Ziel brutal.', exclude: 'Normales Tempo = Revenant raus.' },
+  'Shade': { first: 'Mit und ohne Spieler im Raum testen.', signal: 'Jagt nicht im selben Raum.', exclude: 'Direkt aggressiv bei dir = sinkt.' },
+  'Spirit': { first: '180 s nach Smudge timen.', signal: 'Kein Hunt vor 180 s.', exclude: 'Hunt vor 180 s = Spirit raus.' },
+  'Thaye': { first: 'Frühe und späte Hunts vergleichen.', signal: 'Später deutlich langsamer.', exclude: 'Bleibt gleich stark = sinkt.' },
+  'Der Mimik': { first: 'Kamera sofort auf Zusatz-Orbs.', signal: 'Zusatz-Orbs = Mimik offen.', exclude: 'Keine Orbs schließen ihn nicht sicher aus.' },
+  'Die Zwillinge': { first: 'Doppelinteraktionen und 2 Hunts prüfen.', signal: 'Ein Hunt langsamer, einer schneller.', exclude: 'Ein Tempo allein reicht nie.' },
+  'Gespenst': { first: 'Salz in den sicheren Laufweg legen.', signal: 'Tritt nicht in Salz.', exclude: 'Salz getreten = Gespenst raus.' },
+  'Yokai': { first: 'Nah sprechen oder Elektronik nutzen.', signal: 'Reagiert nur auf kurze Distanz.', exclude: 'Reagiert weit weg = Yokai raus.' },
+  'Yurei': { first: 'Volle Türbewegung und Smudge prüfen.', signal: 'Volle Tür + raumtreu nach Smudge.', exclude: 'Halbe Türbewegung sagt nichts.' }
+};
+
 
 function createDefaultFilterState() {
   return {
     difficulty: 'profi',
     search: '',
+    noEvidenceFocus: 'all',
     strict: false,
     evidences: Object.fromEntries(EVIDENCES.map(e => [e, 0])),
     speed: [],
@@ -1558,7 +1810,8 @@ function cloneFilterState(state = filterState) {
     speed: [...(state.speed || [])],
     speedChange: [...(state.speedChange || [])],
     hunt: [...(state.hunt || [])],
-    tag: [...(state.tag || [])]
+    tag: [...(state.tag || [])],
+    noEvidenceFocus: state.noEvidenceFocus || 'all'
   };
 }
 
@@ -2553,6 +2806,30 @@ function getNoEvidenceGroupMeta(groupKey) {
   return NO_EVIDENCE_GROUPS.find(group => group.key === groupKey) || NO_EVIDENCE_GROUPS[0];
 }
 
+function matchesNoEvidenceFocus(entry, focus = filterState.noEvidenceFocus) {
+  if (!focus || focus === 'all') return true;
+
+  const tools = (entry.guide.tools || []).join(' ').toLowerCase();
+  const focusTag = (entry.guide.focus || '').toLowerCase();
+
+  switch (focus) {
+    case 'hunt1':
+      return entry.guide.group === 'hunt1';
+    case 'salz':
+      return focusTag.includes('salz') || tools.includes('salz');
+    case 'kamera':
+      return focusTag.includes('kamera') || tools.includes('kamera') || tools.includes('video') || tools.includes('orbs');
+    case 'kerzen':
+      return focusTag.includes('flammen') || tools.includes('kerzen') || tools.includes('feuerzeug');
+    case 'audio':
+      return focusTag.includes('audio') || tools.includes('parabol') || tools.includes('sound') || tools.includes('stimme') || tools.includes('geisterbox');
+    case 'timer':
+      return tools.includes('timer') || tools.includes('räucherwerk') || focusTag.includes('räucherwerk');
+    default:
+      return true;
+  }
+}
+
 function buildNoEvidenceSearchEntries(entry) {
   const { ghost, guide } = entry;
   const group = getNoEvidenceGroupMeta(guide.group);
@@ -2590,6 +2867,7 @@ function getFilteredNoEvidenceEntries() {
       return { ...entry, searchScore: search.score, searchMatch: search.match };
     })
     .filter(entry => entry.searchMatch)
+    .filter(entry => matchesNoEvidenceFocus(entry))
     .sort((a, b) => {
       if (a.guide.group !== b.guide.group) {
         return NO_EVIDENCE_GROUP_INDEX[a.guide.group] - NO_EVIDENCE_GROUP_INDEX[b.guide.group];
@@ -2611,101 +2889,258 @@ function getFilteredNoEvidenceEntries() {
 }
 
 function renderNoEvidenceIntro() {
+  const setupHighlights = [
+    '0 Sanity',
+    '0 Schonfrist',
+    'Breaker an',
+    'Keine Verstecke'
+  ];
+  const activeEntries = getFilteredNoEvidenceEntries().filter(entry => !dimmedGhosts.has(entry.ghost.name));
+  const phaseCounts = {
+    hunt1: activeEntries.filter(entry => entry.guide.group === 'hunt1').length,
+    trip2: activeEntries.filter(entry => entry.guide.group === 'trip2').length,
+    hunt2: activeEntries.filter(entry => entry.guide.group === 'hunt2').length,
+    endgame: activeEntries.filter(entry => entry.guide.group === 'endgame').length
+  };
+
   return `
-    <article class="panel noevidence-hero">
+    <article class="panel noevidence-hero noevidence-hero-compact">
       <div class="noevidence-hero-copy">
-        <span class="maps-kicker">0 Beweise</span>
-        <h2>No Evidence: immer derselbe Ablauf</h2>
-        <p class="muted">Du spielst nicht gegen 27 verschiedene Startpläne. Du spielst immer <strong>denselben Standard</strong>: Setup, drei Früh-Tests, erste kontrollierte Jagd, Kontrolltests und erst ganz am Ende die Spezialfälle. Die Geister darunter zeigen dir nur, <strong>wo sie vom Standard abweichen</strong>.</p>
+        <span class="note-label">No Evidence</span>
+        <h2>System</h2>
+        <p class="muted">Immer gleich arbeiten: <strong>Hunt lesen</strong>, dann <strong>Salz / Kamera / Kerzen</strong>, danach <strong>Timer / Audio / Licht</strong>.</p>
       </div>
-      <div class="noevidence-loadout">
-        <span class="note-label">Trip 2 mitnehmen</span>
-        <div class="noevidence-loadout-pills">
-          ${NO_EVIDENCE_LOADOUT.map(item => `<span class="noevidence-pill">${escapeHtml(item)}</span>`).join('')}
-        </div>
-      </div>
-      <div class="noevidence-openers">
-        ${NO_EVIDENCE_OPENERS.map(opener => `
-          <div class="noevidence-opener">
-            <span class="note-label">${escapeHtml(opener.title)}</span>
-            <p class="note-text">${highlightClues(opener.copy)}</p>
+      <div class="noevidence-system-shell">
+        <section class="noevidence-system-block">
+          <span class="note-label">Regeln</span>
+          <div class="noevidence-setup-strip">
+            ${setupHighlights.map(point => `<span class="noevidence-setup-item">${escapeHtml(point)}</span>`).join('')}
           </div>
-        `).join('')}
+        </section>
+        <section class="noevidence-system-block">
+          <span class="note-label">Filter</span>
+          <div class="noevidence-focus-chips">
+            ${NO_EVIDENCE_FILTERS.map(item => `
+              <button
+                type="button"
+                class="noevidence-focus-btn${filterState.noEvidenceFocus === item.value ? ' is-active' : ''}"
+                data-noevidence-focus="${escapeHtml(item.value)}"
+              >${escapeHtml(item.label)}</button>
+            `).join('')}
+          </div>
+        </section>
       </div>
+      <div class="noevidence-priority-grid noevidence-priority-grid-compact noevidence-system-flow">
+        <section class="noevidence-priority-card is-start">
+          <span class="noevidence-mini-step">1</span>
+          <h3>Hunt lesen</h3>
+          <p class="noevidence-priority-copy">Tempo, Sichtlinie, Strom.</p>
+          <p class="noevidence-priority-meta">${phaseCounts.hunt1} aktiv</p>
+        </section>
+        <section class="noevidence-priority-card is-items">
+          <span class="noevidence-mini-step">2</span>
+          <h3>Sofort legen</h3>
+          <p class="noevidence-priority-copy">Salz, Kamera, Kerzen.</p>
+          <p class="noevidence-priority-meta">${phaseCounts.trip2} aktiv</p>
+        </section>
+        <section class="noevidence-priority-card is-order">
+          <span class="noevidence-mini-step">3</span>
+          <h3>Kontrolltests</h3>
+          <p class="noevidence-priority-copy">Timer, Audio, Licht.</p>
+          <p class="noevidence-priority-meta">${phaseCounts.hunt2} aktiv</p>
+        </section>
+        <section class="noevidence-priority-card is-cleanup">
+          <span class="noevidence-mini-step">4</span>
+          <h3>Cleanup</h3>
+          <p class="noevidence-priority-copy">Foto, UV, Türen, Events.</p>
+          <p class="noevidence-priority-meta">${phaseCounts.endgame} aktiv</p>
+        </section>
+      </div>
+      <section class="noevidence-item-order">
+        <div class="noevidence-item-order-head">
+          <span class="note-label">Item-Reihenfolge</span>
+          <strong>Was zuerst legen und was du damit sofort streichen kannst</strong>
+        </div>
+        <div class="noevidence-item-order-list">
+          ${NO_EVIDENCE_ITEM_ORDER.map(entry => `
+            <article class="noevidence-item-order-row">
+              <div class="noevidence-item-order-top">
+                <span class="tag tag-gold">${escapeHtml(entry.item)}</span>
+                <span class="noevidence-section-count">${escapeHtml(entry.phase)}</span>
+              </div>
+              <p><strong>Mach:</strong> ${highlightClues(entry.do)}</p>
+              <p><strong>Streich:</strong> ${highlightClues(entry.out)}</p>
+            </article>
+          `).join('')}
+        </div>
+      </section>
+      <details class="ghost-details card-control noevidence-setup-details">
+        <summary class="ghost-details-summary">Volles Setup</summary>
+        <div class="noevidence-preset-grid">
+          ${NO_EVIDENCE_CUSTOM_PRESET.map(section => `
+            <section class="noevidence-preset-card">
+              <span class="note-label">${escapeHtml(section.title)}</span>
+              <ul class="noevidence-preset-list">
+                ${section.points.map(point => `<li>${escapeHtml(point)}</li>`).join('')}
+              </ul>
+            </section>
+          `).join('')}
+        </div>
+      </details>
     </article>
   `;
 }
 
 function renderNoEvidenceChecks() {
+  const activeEntries = getFilteredNoEvidenceEntries().filter(entry => !dimmedGhosts.has(entry.ghost.name));
+  const phaseOrder = { 'Start-Hunt': 0, 'Nach Hunt 1': 1, 'Hunt 2': 2, 'Endgame': 3 };
+  const relevantTests = NO_EVIDENCE_TESTS
+    .map((test, index) => {
+      const activeNames = activeEntries
+        .filter(entry => test.ghosts.includes(entry.ghost.name))
+        .map(entry => entry.ghost.name);
+
+      return { ...test, activeNames, sourceIndex: index };
+    })
+    .filter(test => test.activeNames.length > 0);
+
+  if (!relevantTests.length) {
+    return '';
+  }
+
+  const orderedTests = relevantTests
+    .sort((a, b) => {
+      if ((phaseOrder[a.phase] ?? 99) !== (phaseOrder[b.phase] ?? 99)) {
+        return (phaseOrder[a.phase] ?? 99) - (phaseOrder[b.phase] ?? 99);
+      }
+
+      if (a.activeNames.length !== b.activeNames.length) {
+        return a.activeNames.length - b.activeNames.length;
+      }
+
+      return a.sourceIndex - b.sourceIndex;
+    })
+    .slice(0, activeEntries.length <= 4 ? 1 : 2);
+
+  const primaryTest = orderedTests[0];
+  const secondaryTests = orderedTests.slice(1);
+
   return `
-    <section class="noevidence-flow">
+    <section class="noevidence-cheatsheet">
       <div class="noevidence-flow-head">
         <div>
-          <span class="note-label">Idiotentest</span>
-          <h2 class="noevidence-flow-title">So spielst du jede 0-Beweise-Runde</h2>
-          <p class="muted">Nicht springen, nicht raten. Erst die Runde lesen, dann den Geist callen.</p>
+          <h2 class="noevidence-flow-title">Nächster Schritt im System</h2>
+          <p class="muted">Teste jetzt nur die Checks, die dir sofort Geister streichen.</p>
         </div>
       </div>
-      <div class="noevidence-system-grid">
-        ${NO_EVIDENCE_SYSTEM.map(step => `
-          <article class="panel noevidence-system-card">
-            <div class="noevidence-system-head">
-              <span class="noevidence-system-step">${step.step}</span>
-              <div>
-                <h3 class="noevidence-system-title">${escapeHtml(step.title)}</h3>
-                <p class="muted">${escapeHtml(step.summary)}</p>
-              </div>
+      <div class="noevidence-next-grid">
+        <article class="panel noevidence-cheat-card is-primary">
+          <div class="noevidence-cheat-head">
+            <div class="noevidence-cheat-topline">
+              <span class="noevidence-system-step">${escapeHtml(primaryTest.phase)}</span>
+              <span class="noevidence-section-count">${primaryTest.activeNames.length} aktiv</span>
             </div>
-            <ul class="noevidence-bullet-list">
-              ${step.bullets.map(bullet => `<li>${highlightClues(bullet)}</li>`).join('')}
-            </ul>
-          </article>
-        `).join('')}
+            <h3 class="noevidence-system-title">Jetzt zuerst: ${escapeHtml(primaryTest.title)}</h3>
+            <p class="noevidence-cheat-impact">Trennt: ${escapeHtml(summarizeNoEvidenceTargets(primaryTest.activeNames))}</p>
+          </div>
+          <div class="noevidence-cheat-body">
+            <div class="guide-line">
+              <span class="note-label">Mach</span>
+              <p class="note-text">${highlightClues(directCheatText(primaryTest.action))}</p>
+            </div>
+            <div class="guide-line">
+              <span class="note-label">Wenn ja</span>
+              <p class="note-text">${highlightClues(directCheatText(primaryTest.yes))}</p>
+            </div>
+            <div class="guide-line">
+              <span class="note-label">Wenn nein</span>
+              <p class="note-text">${highlightClues(directCheatText(primaryTest.no))}</p>
+            </div>
+          </div>
+        </article>
+        ${secondaryTests.length ? `
+          <aside class="panel noevidence-followup-card">
+            <div class="noevidence-cheat-head">
+              <h3 class="noevidence-system-title">Danach</h3>
+              <p class="noevidence-cheat-impact">Nur wenn der erste Check noch nicht reicht.</p>
+            </div>
+            <div class="noevidence-followup-list">
+              ${secondaryTests.map((test, index) => `
+                <article class="noevidence-followup-item">
+                  <div class="noevidence-cheat-topline">
+                    <span class="noevidence-system-step">${escapeHtml(test.phase)}</span>
+                    <span class="noevidence-section-count">${test.activeNames.length} aktiv</span>
+                  </div>
+                  <strong>#${index + 2} ${escapeHtml(test.title)}</strong>
+                  <p>${highlightClues(directCheatText(test.action))}</p>
+                </article>
+              `).join('')}
+            </div>
+          </aside>
+        ` : ''}
       </div>
     </section>
   `;
 }
 
-function renderNoEvidenceCard(entry) {
+function renderNoEvidenceCard(entry, activeRank) {
   const { ghost, guide } = entry;
-  const group = getNoEvidenceGroupMeta(guide.group);
+  const quick = getNoEvidenceVisibleGuide(ghost.name, guide);
+  const signalLabel = guide.tempo ? 'Tempo' : 'Bleibt';
+  const signalCopy = quick.signal;
+  const speedMeta = ghosts.find(candidate => candidate.name === ghost.name);
+  const speedValue = speedMeta?.speedValue || '1,7 m/s';
+  const speedHint = speedMeta?.speedHint || 'Standardtempo';
 
   return `
-    <article class="noevidence-card noevidence-card-${guide.group}">
+    <article class="noevidence-card noevidence-card-${guide.group}${dimmedGhosts.has(ghost.name) ? ' is-dimmed' : ''}" data-ghost-name="${ghost.name}">
       <div class="noevidence-card-header">
-        <div>
-          <div class="noevidence-card-kicker-row">
-            <span class="noevidence-group-chip">${escapeHtml(group.step)}</span>
-            <span class="tag ${tagClass(guide.focus)}">${escapeHtml(guide.focus)}</span>
-          </div>
-          <h3 class="noevidence-card-title">${ghost.name}</h3>
+        <div class="noevidence-card-kicker-row">
+          ${activeRank ? `<span class="card-rank-badge">#${activeRank}</span>` : ''}
+          <span class="noevidence-phase-chip">${escapeHtml(getNoEvidenceGroupMeta(guide.group).step)}</span>
+          <span class="tag ${tagClass(guide.focus)}">${escapeHtml(guide.focus)}</span>
         </div>
-        <div class="noevidence-card-tools">
-          ${(guide.tools || []).map(tool => `<span class="noevidence-tool-chip">${escapeHtml(tool)}</span>`).join('')}
-        </div>
+        <h3 class="noevidence-card-title">${ghost.name}</h3>
       </div>
 
-      <div class="noevidence-card-grid">
-        <div class="noevidence-block">
-          <span class="note-label">Standardtest</span>
-          <p class="note-text">${highlightClues(guide.first)}</p>
-        </div>
-        <div class="noevidence-block">
-          <span class="note-label">Haupttell</span>
-          <p class="note-text">${highlightClues(guide.watch)}</p>
-        </div>
-        <div class="noevidence-block">
-          <span class="note-label">Kein Geist, wenn</span>
-          <p class="note-text">${highlightClues(guide.exclude)}</p>
+      <div class="noevidence-card-main">
+        <section class="noevidence-line is-primary">
+          <span class="note-label">Mach</span>
+          <p class="note-text">${highlightClues(quick.first)}</p>
+        </section>
+
+        <section class="noevidence-line is-speed">
+          <span class="note-label">Geschwindigkeit</span>
+          <p class="note-text"><strong>${escapeHtml(speedValue)}</strong>${speedHint ? ` · ${escapeHtml(speedHint)}` : ''}</p>
+        </section>
+
+        <div class="noevidence-card-results">
+          <section class="noevidence-line is-bad">
+            <span class="note-label">Streich</span>
+            <p class="note-text">${highlightClues(quick.exclude)}</p>
+          </section>
+
+          <section class="noevidence-line is-signal${guide.tempo ? ' is-tempo' : ''}">
+            <span class="note-label">${signalLabel}</span>
+            <p class="note-text">${highlightClues(signalCopy)}</p>
+          </section>
         </div>
       </div>
 
       <details class="ghost-details card-control">
-        <summary class="ghost-details-summary">Mehr dazu</summary>
+        <summary class="ghost-details-summary">Nur falls offen</summary>
         <div class="guide-stack">
+          <div class="guide-line">
+            <span class="note-label">Wenn es passt</span>
+            <p class="note-text">${highlightClues(guide.watch)}</p>
+          </div>
           <div class="guide-line">
             <span class="note-label">Später absichern</span>
             <p class="note-text">${highlightClues(guide.bonus)}</p>
+          </div>
+          <div class="guide-line">
+            <span class="note-label">Werkzeug</span>
+            <p class="note-text">${highlightClues((guide.tools || []).join(', '))}</p>
           </div>
           <div class="guide-line">
             <span class="note-label">Nicht verwechseln</span>
@@ -2724,26 +3159,76 @@ function renderNoEvidenceGrid() {
     return `<div class="empty"><h3>Keine passenden No-Evidence-Geister</h3><p>Versuche einen allgemeineren Begriff wie <strong>salz</strong>, <strong>hunt tempo</strong>, <strong>spirit box</strong> oder einen Geisternamen.</p></div>`;
   }
 
-  return NO_EVIDENCE_GROUPS.map(group => {
+  const activeRanks = new Map();
+  const activeEntries = filteredEntries
+    .filter(entry => !dimmedGhosts.has(entry.ghost.name));
+
+  activeEntries
+    .forEach((entry, index) => {
+      activeRanks.set(entry.ghost.name, index + 1);
+    });
+
+  const totalActive = activeEntries.length;
+  const workThroughMarkup = activeEntries
+    .slice(0, 8)
+    .map(entry => {
+      const rank = activeRanks.get(entry.ghost.name);
+      return `
+        <span class="noevidence-order-chip">
+          <span class="noevidence-order-rank">#${rank}</span>
+          <span class="noevidence-order-name">${escapeHtml(entry.ghost.name)}</span>
+        </span>
+      `;
+    })
+    .join('');
+
+  const sections = NO_EVIDENCE_GROUPS.map(group => {
     const groupEntries = filteredEntries.filter(entry => entry.guide.group === group.key);
     if (!groupEntries.length) return '';
+    const orderedEntries = [
+      ...groupEntries.filter(entry => !dimmedGhosts.has(entry.ghost.name)),
+      ...groupEntries.filter(entry => dimmedGhosts.has(entry.ghost.name))
+    ];
+    const activeCount = orderedEntries.filter(entry => !dimmedGhosts.has(entry.ghost.name)).length;
+    const countLabel = `${activeCount} aktiv / ${orderedEntries.length} gesamt`;
 
     return `
       <section class="noevidence-section">
+        <div class="noevidence-section-shell">
         <div class="noevidence-section-header">
           <div>
             <span class="noevidence-section-step">${escapeHtml(group.step)}</span>
             <h2 class="noevidence-section-title">${escapeHtml(group.title)}</h2>
-            <p class="noevidence-section-copy">${escapeHtml(group.intro)}</p>
           </div>
-          <span class="noevidence-section-count">${groupEntries.length} Geister</span>
+          <span class="noevidence-section-count">${countLabel}</span>
         </div>
         <div class="noevidence-card-grid-shell">
-          ${groupEntries.map(renderNoEvidenceCard).join('')}
+          ${orderedEntries.map(entry => renderNoEvidenceCard(entry, activeRanks.get(entry.ghost.name))).join('')}
+        </div>
         </div>
       </section>
     `;
   }).join('');
+
+  return `
+    <section class="noevidence-progress-strip">
+      <strong>Noch ${totalActive} aktiv</strong>
+      <span class="noevidence-dot">•</span>
+      <span>von <strong>#1</strong> nach unten lesen</span>
+      <span class="noevidence-dot">•</span>
+      <span>Aktiv ${totalActive} / Suche ${filteredEntries.length}</span>
+    </section>
+    <section class="noevidence-order-strip">
+      <div class="noevidence-order-head">
+        <span class="note-label">Abarbeiten</span>
+        <strong>${totalActive ? `Zuerst #1 bis #${Math.min(totalActive, 8)}` : 'Keine aktiven Geister'}</strong>
+      </div>
+      <div class="noevidence-order-list">
+        ${workThroughMarkup || '<span class="noevidence-order-empty">Alle sichtbaren Geister sind aktuell ausgegraut.</span>'}
+      </div>
+    </section>
+    ${sections}
+  `;
 }
 
 function summarizeReasons(reasons, max = 2) {
@@ -2792,6 +3277,47 @@ function firstSentence(value) {
 
   const match = text.match(/^[^.!?]+[.!?]?/);
   return (match ? match[0] : text).trim();
+}
+
+function directCheatText(value) {
+  let text = firstSentence(value)
+    .replace(/[.!?]+$/, '')
+    .split(/[;,]/)[0]
+    .trim();
+
+  text = text
+    .replace(/^Danach\s+/i, '')
+    .replace(/^Jetzt\s+/i, '')
+    .replace(/^Dann\s+/i, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  return text;
+}
+
+function summarizeNoEvidenceTargets(names) {
+  if (!names.length) return '';
+  if (names.length <= 2) return names.join(', ');
+  if (names.length <= 4) return `${names.slice(0, 2).join(', ')} +${names.length - 2}`;
+  return `${names.length} Geister`;
+}
+
+function getNoEvidenceVisibleGuide(ghostName, guide) {
+  const quick = NO_EVIDENCE_QUICK_GUIDE[ghostName];
+
+  if (quick) {
+    return {
+      first: quick.first,
+      signal: guide.tempo || quick.signal,
+      exclude: quick.exclude
+    };
+  }
+
+  return {
+    first: directCheatText(guide.first),
+    signal: directCheatText(guide.tempo || guide.watch),
+    exclude: directCheatText(guide.exclude)
+  };
 }
 
 function ghostCertaintyRank(ghost) {
@@ -3304,20 +3830,36 @@ function render() {
   updateSearchUI();
   renderDifficultyInfo();
   renderEvidenceFilters();
-  if (els.noEvidenceIntro) {
-    els.noEvidenceIntro.innerHTML = renderNoEvidenceIntro();
+  if (currentView === 'noEvidence') {
+    if (els.noEvidenceIntro) {
+      els.noEvidenceIntro.innerHTML = renderNoEvidenceIntro();
+    }
+    if (els.noEvidenceChecks) {
+      els.noEvidenceChecks.innerHTML = renderNoEvidenceChecks();
+    }
+    if (els.noEvidenceGrid) {
+      els.noEvidenceGrid.innerHTML = renderNoEvidenceGrid();
+    }
+  } else {
+    if (els.noEvidenceIntro) els.noEvidenceIntro.innerHTML = '';
+    if (els.noEvidenceChecks) els.noEvidenceChecks.innerHTML = '';
+    if (els.noEvidenceGrid) els.noEvidenceGrid.innerHTML = '';
   }
-  if (els.noEvidenceChecks) {
-    els.noEvidenceChecks.innerHTML = renderNoEvidenceChecks();
+
+  if (currentView === 'cursed') {
+    if (els.cursedGrid) {
+      els.cursedGrid.innerHTML = renderCursedCards();
+    }
+  } else if (els.cursedGrid) {
+    els.cursedGrid.innerHTML = '';
   }
-  if (els.noEvidenceGrid) {
-    els.noEvidenceGrid.innerHTML = renderNoEvidenceGrid();
-  }
-  if (els.cursedGrid) {
-    els.cursedGrid.innerHTML = renderCursedCards();
-  }
-  if (els.mapsGrid) {
-    els.mapsGrid.innerHTML = renderMaps();
+
+  if (currentView === 'maps') {
+    if (els.mapsGrid) {
+      els.mapsGrid.innerHTML = renderMaps();
+    }
+  } else if (els.mapsGrid) {
+    els.mapsGrid.innerHTML = '';
   }
 
   const evaluations = ghosts
@@ -3346,6 +3888,10 @@ function render() {
 
   const filtered = evaluations.filter(entry => entry.match);
   const helperEntries = filtered.filter(entry => !dimmedGhosts.has(entry.ghost.name));
+  const activeGhostRanks = new Map();
+  helperEntries.forEach((entry, index) => {
+    activeGhostRanks.set(entry.ghost.name, index + 1);
+  });
   lastGhostEvaluations = evaluations;
   lastFilteredCount = filtered.length;
   updateResultCount(filtered.length);
@@ -3375,11 +3921,13 @@ function render() {
     const primaryMatchReasons = [...behaviorReasons, ...nonBehaviorReasons];
     const matchReasons = primaryMatchReasons.length ? primaryMatchReasons : matchedBy;
     const cautionReasons = softMisses.length ? softMisses : excludedBy;
+    const activeRank = activeGhostRanks.get(ghost.name);
 
     return `
       <article class="ghost-card ${cardTypeClass(ghost.tags)}${dimmedGhosts.has(ghost.name) ? ' is-dimmed' : ''}" data-ghost-name="${ghost.name}">
         <div class="ghost-header">
           <div class="ghost-heading">
+            ${activeRank ? `<span class="card-rank-badge">#${activeRank}</span>` : ''}
             <h2 class="ghost-name">${ghost.name}</h2>
             <div class="name-evidences">
               ${visibleEvidencePills(ghost)}
@@ -3480,6 +4028,7 @@ function resetAll() {
   dimmedGhosts.clear();
   filterState.difficulty = 'profi';
   filterState.search = '';
+  filterState.noEvidenceFocus = 'all';
   filterState.strict = false;
   filterState.speed = [];
   filterState.speedChange = [];
@@ -3502,6 +4051,13 @@ document.addEventListener('click', (e) => {
   const chip = e.target.closest('.chip-button');
   if (chip) {
     removeChip(chip.dataset.chipType, chip.dataset.chipValue);
+    return;
+  }
+
+  const noEvidenceFocus = e.target.closest('.noevidence-focus-btn');
+  if (noEvidenceFocus) {
+    filterState.noEvidenceFocus = noEvidenceFocus.dataset.noevidenceFocus || 'all';
+    render();
     return;
   }
 
@@ -3534,7 +4090,7 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  const card = e.target.closest('.ghost-card');
+  const card = e.target.closest('.ghost-card, .noevidence-card');
   if (card) {
     if (e.target.closest('.card-control')) return;
 
