@@ -203,11 +203,11 @@
     tags: ['100%-Test', 'Flammen'],
     speedValue: '1,7 m/s',
     speedHint: 'Standardtempo',
-    percentInfo: '40% mit Flamme; Fähigkeit theoretisch bis 100%; 3 Flammen lösen Test aus.',
-    keyTest: 'Drei gelöschte Flammen mitzählen und dann innerhalb weniger Sekunden auf einen Hunt achten. Das ist der klarste Onryo-Test.',
+    percentInfo: '40% mit Flamme; Fähigkeit theoretisch bis 100%; 30 s erste Flamme / 20 s Folgezündung; 3 Flammen öffnen den Hunt-Test.',
+    keyTest: 'Sicherer Sekundentest: Bläst er eine frisch angezündete Flamme in unter 30 Sekunden aus, oder später in unter 20 Sekunden, ist Onryo sehr stark. Drei Blowouts öffnen danach den Hunt-Test.',
     huntNote: 'Mit Flamme in 4 m Nähe sinkt die normale Jagdgrenze auf 40%, über die Fähigkeit kann er aber theoretisch schon bei 100% jagen.',
     specialNote: 'Kerzen haben bei ihm höhere Priorität als Kruzifixe. Brennt eine Flamme in 4 m, blockt sie Hunts komplett.',
-    caution: 'Kerzen sauber mitzählen. Ein einzelnes Auspusten reicht für den Test noch nicht.'
+    caution: 'Nach dem dritten Blowout gibt es keinen festen Sekundentimer. Der Huntversuch kann verzögert kommen, sobald der Geist wieder aus Idle/Event raus ist.'
   },
   {
     name: 'Phantom',

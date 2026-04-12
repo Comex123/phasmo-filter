@@ -562,9 +562,9 @@ const NO_EVIDENCE_TESTS = [
     phase: 'Nach Hunt 1',
     title: 'Kerzen',
     ghosts: ['Onryo'],
-    action: 'Drei Blowouts sauber zählen und auf den Huntversuch achten.',
-    yes: 'Drei ausgeblasene Kerzen plus schneller Hunt ziehen Onryo sofort nach vorne.',
-    no: 'Ohne sauberes Kerzen-Timing ist Onryo nicht klar lesbar.'
+    action: 'Flammen timen: erste unter 30 s, danach unter 20 s. Zusätzlich drei Blowouts sauber zählen.',
+    yes: 'Unter 30 s / 20 s ausgeblasene Flammen sind ein starker Onryo-Hinweis. Nach 3 Blowouts ist Onryo offen, aber ohne festen Sekunden-Hunttimer.',
+    no: 'Ohne 30 s / 20 s Flammen-Timing oder saubere 3-Blowout-Zählung ist Onryo nicht klar lesbar.'
   },
   {
     phase: 'Start-Hunt',
@@ -874,11 +874,11 @@ const NO_EVIDENCE_GUIDES = {
     order: 3,
     focus: 'Flammen',
     tools: ['Kerzen', 'Feuerzeug', 'Timer'],
-    first: 'Drei Blowouts sauber zählen und direkt auf den Huntversuch achten.',
-    watch: 'Flammen blocken Hunts. Nach drei ausgeblasenen Kerzen kann Onryo sofort einen Hunt versuchen.',
-    exclude: 'Ohne sauberes Kerzen-Timing ist Onryo kaum sauber lesbar.',
-    bonus: 'Kerzen nah am Geist sind der beste frühe No-Evidence-Test für Onryo.',
-    caution: 'Ein einzelnes Auspusten bestätigt noch nichts.'
+    first: 'Flammen timen: erste unter 30 s, danach unter 20 s. Zusätzlich drei Blowouts mitzählen.',
+    watch: 'Flammen blocken Hunts. Bläst er frisch angezündete Kerzen unter 30 s / 20 s aus, ist Onryo sehr stark.',
+    exclude: 'Ohne 30 s / 20 s Timing oder saubere 3-Blowout-Zählung Onryo nicht callen.',
+    bonus: 'Nach 3 Blowouts ist Onryo offen, aber der Huntversuch hat keinen festen Sekunden-Timer und kann verzögert kommen.',
+    caution: 'Ein einzelnes Auspusten bestätigt noch nichts. Der 3.-Blowout selbst hat keinen festen Hunt-Sekundenwert.'
   },
   'Phantom': {
     group: 'endgame',
@@ -1033,7 +1033,7 @@ const NO_EVIDENCE_QUICK_GUIDE = {
   'Obake': { first: 'Auf Spezial-UV oder Shapeshift warten.', signal: '6 Finger oder Modellwechsel.', exclude: 'Normale UV allein nicht callen.' },
   'Obambo': { first: 'Mehrere Hunts über Zeit vergleichen.', signal: 'Ruhig/aggressiv wechselt.', exclude: 'Ein schneller Hunt reicht nicht.' },
   'Oni': { first: 'Event-Art lesen.', signal: 'Volle Manifestation, kein Airball.', exclude: 'Airball = Oni raus.' },
-  'Onryo': { first: 'Drei Blowouts sauber zählen.', signal: '3 Kerzen -> Huntversuch.', exclude: 'Ohne Kerzen-Timing nicht callen.' },
+  'Onryo': { first: 'Flamme timen: erst <30 s, dann <20 s.', signal: '3 Blowouts öffnen den Hunt-Test, aber ohne festen Sekunden-Timer.', exclude: 'Ohne 30 s / 20 s Timing nicht callen.' },
   'Phantom': { first: 'Event oder Manifestation fotografieren.', signal: 'Verschwindet auf Foto oder Video.', exclude: 'Bleibt im Bild = Phantom sinkt.' },
   'Poltergeist': { first: 'Wurfkram liegen lassen.', signal: 'Mehrfachwurf oder harter Wurf.', exclude: 'Einzelwurf reicht nie.' },
   'Raiju': { first: 'Mit und ohne Elektronik vergleichen.', signal: 'Nahe Geräte deutlich schneller.', exclude: 'Ohne Geräteeinfluss sinkt Raiju.' },
@@ -2017,6 +2017,55 @@ function cardTypeClass(tags) {
   return '';
 }
 
+const GHOST_FAMILY_MAP = {
+  'Banshee': 'purple',
+  'Dayan': 'blue',
+  'Dämon': 'red',
+  'Deogen': 'blue',
+  'Gallu': 'gold',
+  'Goryo': 'purple',
+  'Hantu': 'blue',
+  'Dschinn': 'blue',
+  'Mare': 'gold',
+  'Moroi': 'blue',
+  'Myling': 'purple',
+  'Obake': 'gold',
+  'Obambo': 'blue',
+  'Oni': 'purple',
+  'Onryo': 'gold',
+  'Phantom': 'purple',
+  'Poltergeist': 'purple',
+  'Raiju': 'blue',
+  'Revenant': 'blue',
+  'Shade': 'purple',
+  'Spirit': 'gold',
+  'Thaye': 'blue',
+  'Der Mimik': 'purple',
+  'Die Zwillinge': 'blue',
+  'Gespenst': 'gold',
+  'Yokai': 'purple',
+  'Yurei': 'gold'
+};
+
+const GHOST_FAMILY_LABELS = {
+  blue: 'Tempo / Distanz',
+  gold: 'Item-Test',
+  purple: 'Beobachtung',
+  red: 'Hunt / Gefahr'
+};
+
+function ghostFamilyKey(name) {
+  return GHOST_FAMILY_MAP[name] || 'purple';
+}
+
+function ghostFamilyClass(name) {
+  return `family-${ghostFamilyKey(name)}`;
+}
+
+function ghostFamilyLabel(name) {
+  return GHOST_FAMILY_LABELS[ghostFamilyKey(name)] || 'Beobachtung';
+}
+
 function displayCardTags(tags = []) {
   const certainty = tags.find(tag => PRIMARY_TAGS.has(tag));
   const support = tags.find(tag => !PRIMARY_TAGS.has(tag));
@@ -2198,15 +2247,15 @@ function tagClass(tag) {
     'Räucherwerk': 'tag-tool',
     'Täuscher': 'tag-trick',
     'Anti-Hide': 'tag-danger',
-        'Bewegung': 'tag-trait',
+    'Bewegung': 'tag-trait',
     'Zustände': 'tag-trait',
-    'Events': 'tag-trait',
+    'Events': 'tag-sense',
     'Sichtlinie': 'tag-trait',
-    'Passiv': 'tag-trait',
+    'Passiv': 'tag-sense',
     'Alterung': 'tag-trait',
     'Doppelaktion': 'tag-trait',
-    'Türen': 'tag-trait',
-    'Objekte': 'tag-trait'
+    'Türen': 'tag-sense',
+    'Objekte': 'tag-sense'
   };
 
   return map[tag] || 'tag-trait';
@@ -3088,9 +3137,11 @@ function renderNoEvidenceCard(entry, activeRank) {
   const speedMeta = ghosts.find(candidate => candidate.name === ghost.name);
   const speedValue = speedMeta?.speedValue || '1,7 m/s';
   const speedHint = speedMeta?.speedHint || 'Standardtempo';
+  const familyClass = ghostFamilyClass(ghost.name);
+  const familyLabel = ghostFamilyLabel(ghost.name);
 
   return `
-    <article class="noevidence-card noevidence-card-${guide.group}${dimmedGhosts.has(ghost.name) ? ' is-dimmed' : ''}" data-ghost-name="${ghost.name}">
+    <article class="noevidence-card noevidence-card-${guide.group} ${familyClass}${dimmedGhosts.has(ghost.name) ? ' is-dimmed' : ''}" data-ghost-name="${ghost.name}">
       <div class="noevidence-card-header">
         <div class="noevidence-card-kicker-row">
           ${activeRank ? `<span class="card-rank-badge">#${activeRank}</span>` : ''}
@@ -3098,6 +3149,7 @@ function renderNoEvidenceCard(entry, activeRank) {
           <span class="tag ${tagClass(guide.focus)}">${escapeHtml(guide.focus)}</span>
         </div>
         <h3 class="noevidence-card-title">${ghost.name}</h3>
+        <div class="ghost-family-band ${familyClass}">${familyLabel}</div>
       </div>
 
       <div class="noevidence-card-main">
@@ -3166,18 +3218,6 @@ function renderNoEvidenceGrid() {
     });
 
   const totalActive = activeEntries.length;
-  const workThroughMarkup = activeEntries
-    .slice(0, 8)
-    .map(entry => {
-      const rank = activeRanks.get(entry.ghost.name);
-      return `
-        <span class="noevidence-order-chip">
-          <span class="noevidence-order-rank">#${rank}</span>
-          <span class="noevidence-order-name">${escapeHtml(entry.ghost.name)}</span>
-        </span>
-      `;
-    })
-    .join('');
 
   const orderedEntries = [
     ...filteredEntries.filter(entry => !dimmedGhosts.has(entry.ghost.name)),
@@ -3191,15 +3231,6 @@ function renderNoEvidenceGrid() {
       <span>von <strong>#1</strong> nach unten lesen</span>
       <span class="noevidence-dot">•</span>
       <span>Aktiv ${totalActive} / Suche ${filteredEntries.length}</span>
-    </section>
-    <section class="noevidence-order-strip">
-      <div class="noevidence-order-head">
-        <span class="note-label">Abarbeiten</span>
-        <strong>${totalActive ? `Zuerst #1 bis #${Math.min(totalActive, 8)}` : 'Keine aktiven Geister'}</strong>
-      </div>
-      <div class="noevidence-order-list">
-        ${workThroughMarkup || '<span class="noevidence-order-empty">Alle sichtbaren Geister sind aktuell ausgegraut.</span>'}
-      </div>
     </section>
     <section class="noevidence-section">
       <div class="noevidence-card-grid-shell">
@@ -3900,13 +3931,16 @@ function render() {
     const matchReasons = primaryMatchReasons.length ? primaryMatchReasons : matchedBy;
     const cautionReasons = softMisses.length ? softMisses : excludedBy;
     const activeRank = activeGhostRanks.get(ghost.name);
+    const familyClass = ghostFamilyClass(ghost.name);
+    const familyLabel = ghostFamilyLabel(ghost.name);
 
     return `
-      <article class="ghost-card ${cardTypeClass(ghost.tags)}${dimmedGhosts.has(ghost.name) ? ' is-dimmed' : ''}" data-ghost-name="${ghost.name}">
+      <article class="ghost-card ${familyClass}${dimmedGhosts.has(ghost.name) ? ' is-dimmed' : ''}" data-ghost-name="${ghost.name}">
         <div class="ghost-header">
           <div class="ghost-heading">
             ${activeRank ? `<span class="card-rank-badge">#${activeRank}</span>` : ''}
             <h2 class="ghost-name">${ghost.name}</h2>
+            <div class="ghost-family-band ${familyClass}">${familyLabel}</div>
             <div class="name-evidences">
               ${visibleEvidencePills(ghost)}
               ${quickEvidenceNote}
